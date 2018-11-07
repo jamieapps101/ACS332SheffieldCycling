@@ -1,0 +1,43 @@
+Requirements
+1 General
+  1.1 Should take input data in the form of crime statistics, accident rates,
+  1.2 Should have a data set builder (D01S17) in order to collect data at the end of each simulation cycle
+  1.3 Should have optional initial reconfiguration module to regenerate model statistics
+    1.3.1 Should be disableable such that model can be re-run exactly as before
+  1.4 Each agent day shall be executed per tick, with infomation being collected through the dataset builder per half tick
+  1.5 Model shall simulate 1 day per week, for 52 weeks per year for 20 years. This gives 1040 days of simulated time.
+  1.6 Policy options shall be clear outlined at start or program, and one or more options may be selected to be simulated
+    1.6.1 The policy of more cycle routes shall be implimented
+      1.6.1.1 This shall be done by setting the Perceived Travel Safety Metric to 0.9 and increasing journey distance by a constant factor
+    1.6.2 The policy of mode dedicated cycle road space shall be implimented
+      1.6.2.1 This shall be done by increasing the Perceived Travel Safety Metric by a factor
+    1.6.3 The policy of pay per use electric bikes shall be implimented
+      1.6.3.1 This shall be done by reducing negaive impact on hill choice to 0, but increasing cost function
+2 Model
+  2.1 Shall have a temporal events function
+    2.1.1 Temporal events shall include seasonal effects eg seasonal effects
+    2.1.2 Temporal events shall include random events eg accidents, road works
+    2.1.3 Temporal event may include localised illness/illness-transmission
+    2.1.4 Temporal events may include progression of tecnology improvine road safety perception
+  2.2 Should take account of location in city via spatial modelling
+  2.2 Should take input data in the form of crime statistics, accident rates,
+3 Agent
+  3.1 Agents shall be configureable to represent cyclists and non-cyclists
+  3.2 Agents shall have a fitness/willingness-to cycle metric
+    3.2.1 This will be affected by seasonal changes
+    3.2.2 This shall reperesent pre-disoposition to exercise (based on gausian distriution).
+  3.3 Agents shall have an illness metric
+  3.1 Shall have set home location and work location
+    3.1.1 These shall be set in inital configuration such that they are constant through the model
+    3.1.2 These shall have x,y,z coordinates, to map locations in 2D map, as well as to include altiude information
+  Shall have path summation function
+  3.1 Shall have Perceived Travel Safety Metric
+    3.1.1 Metric based on local crime stats, percived accidents, path summation function
+    3.1.2 feedback data including percived accidents shall be sampled and recalculaed for each agent per half tick
+  3.2 Shall have Socio-economic status metric
+    3.2.1 Socio-eoconomi status metric shall be based on living location
+  3.3 shall have decision making process (DM) based on PTS metric, temporal events, exercise predisposition
+    3.3.1 DM may also include illness, random variation
+    3.3.2 DM shall be based on a fuzzy logic reasoning system
+    3.3.3 DM outpud shall be a crisp decision to either cycle to work or to not cycle
+    3.3.4 DM shall only model on journey in the day

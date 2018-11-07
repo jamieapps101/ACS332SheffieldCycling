@@ -1,0 +1,37 @@
+who
+  Sheffield Commuters
+    Cyclists
+    Potentially non-cyclists
+
+what
+  Considering influences that impact commuting method choice:
+    policies:
+      more cycle routes
+      more dedicated cycle road space
+      pay per use electric bikes
+    Temporal Events
+      seasons
+      seasonal roadworks
+      random roadworks
+    agent specific conditions
+      home location
+      work location
+      work-home distance
+      socio-economic status
+      Perceived road safety - positive and negative feedback loops present
+    Spatial Condtions - eg areas that are passed through
+      soci-economic areas - path summation
+      crime stats - path summation
+      Street lighting - path summation
+      Cycling facilities (eg routes, cycle hubs)
+
+where
+  Sheffield City between subregions within
+
+how
+  Multi-agent systems modelling
+  1:100 scale, 600-6000 agents expected
+  Highly configureable to allow model calibration
+  Logging
+why
+when

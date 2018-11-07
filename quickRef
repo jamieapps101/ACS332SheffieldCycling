@@ -1,0 +1,148 @@
+This doc is a quick reference
+
+make requirements
+
+Demo 00 Step 01
+  "mpicxx -c -o Demo_00.o Demo_00.cpp" to build
+  "mpirun -n 4 Demo_00.exe" to run
+  env file contains variables for locations of tools
+Demo 00 Step 02
+  mpi allows ranks to be uniquely   added to agents
+  mpi must finalise itself to clean up after program exits
+Demo 00 Step 03
+  not much
+Demo 00 Step 04
+  added boost version of mpi
+  Also, now c++ features being added
+  "mpixlcxx -c -I/soft/apps/current/repasthpc-1.0.1/extra/boost/boost_1.48/include/ -o Demo_00.o Demo_00.cpp" to compile
+  "mpixlcxx -L/soft/apps/current/repasthpc-1.0.1/extra/boost/boost_1.48/lib/ -o Demo_00.exe Demo_00.o -lboost_mpi-mt-1_48 -lboost_serialization-mt-1_48 -lboost_system-mt-1_48 -lboost_filesystem-mt-1_48" to link
+Demo 00 Step 05
+  adding repastprocess. There is <=one instance of repastprocess for each processor (think 12)
+  There is also support code needed for
+  this is where config.props gets introed but not explained, it if for config or repast
+Demo 00 Step 06
+    class RepastHPCDemoModel is introduced
+    this is instantiated as a pointer called "model" and requires "model-->init();"
+    the model is deleted before the end of the program
+Demo 00 Step 07
+  This adds the mechanism of scheduling
+Demo 00 Step 08
+  adds more detail, as well as a place to put stuff to schedule
+  runner.run() sheduler
+Demo 00 Step 09
+  Every a steps do b
+Demo 00 Step 10
+  events can occur at uneven time intervals and can vary between processes
+Demo 00 Step 11
+  the program will now take a properties file, "model.props", as a parameter. This will be passed to each new instance variable.
+Demo 00 Step 12
+  PRevious code does not scale, as all processes currently reads properties file at the same time, causing io bottlenecks.
+  Solution is to use mpi communicator to initally read properties file, then communicate it through properties object.
+Demo 00 Step 13
+  Allowing commandline to specify additional properties alongside the model.props file
+Demo 00 Step 14
+  a way of specifying a single rank to write to csv file to log output
+Demo 00 Step 15
+  Creating an event method to run at end of tsimulation only, here to write output to file
+Demo 01
+  The way code shall now be structured (might wanna follow this)
+Demo 01 Step 01
+  Introducing Agents, agent IDs (kinda like IPs), and shared contexts
+Demo 01 Step 02
+  the repast model class has a sharedcomponent object, which allows reference to every agent in the simulation
+Demo 01 Step 03
+  Adding to init method of RepastHPCDemoModel. This creates and adds agents to sharedContext
+Demo 01 Step 04
+  random number generation
+Demo 01 Step 05
+  Agent Scheduling, how to iterate through all the agents
+Demo 01 Step 06
+  making the agents do something with each other
+Demo 01 Step 07
+  Agent packages - ways of packaging up all agent data so agents can be moved between processes. This is where boost comes in
+  This uses a nice big struct to pacakage up all agennt data relevent to the model, as well at a function to do it.
+  Also, within the agent.cpp file, there includes reference to this.
+Demo 01 Step 08
+  Mechanisms and limitations of sending and receiving packages of agents between processes
+  copies from one process to another are passive, ie changes to the copy do not affect the original
+Demo 01 Step 09
+  how to "borrow" agents from other processes, but not write to their original copies
+Demo 01 Step 10
+  A way of ensuring only local agents (those on the same process) act and therefore no data is lost
+Demo 01 Step 11
+  Syncronising non-local agent data with their original copies after a function
+Demo 01 Step 12
+  cancelling agent Syncronising
+Demo 01 Step 13
+  Removing imported agents
+Demo 01 Step 14
+  removing local agents,
+  other processes borrowing that agent should be notified that that agent's information will no longer be syncronised
+  its a pain
+Demo 01 Step 15
+  Moving agent from process A to B, controlled by B
+Demo 01 Step 16
+  Requesting agents in sets
+  This can add a small overhead and decrease performance
+Demo 01 Step 17
+  Scheduling data collection on active processes during simulation
+Demo 02 overveiw
+  Demo 2 covers projection and how to structure agent relationships other than randomly
+  This demo covers network based relationships rather than spatial ones
+Demo 02 Step 00
+  Starting point/assumptions for this demo
+Demo 02 Step 01
+  Creating a projection mapping using a sharednetwork projection. This stores informaiton on connections even between processes
+Demo 02 Step 02
+  making netowrk connectiosn among agentsvvideo
+Demo 02 Step 03
+  using netowrk connetctions, and differentiating this from sharedcontext.
+Demo 02 Step 04
+  Adding and attribute called edge weight
+Demo 02 Step 05
+  Adding more attributes than the standard edges.
+Demo 03 overveiw
+  Spatial networking
+  areas of spcae manages by different processes.
+  processes have buffer zones tp account for agents near boundries
+  agents within buffer zone but not within boundries are copied over as non-local agents
+Demo 03 Step 00
+  inital code same as Demo 02 Step 00 with netowrk code removed
+Demo 03 Step 01
+  creating spatial projection in same sense are creating a shared network projection
+Demo 03 Step 02
+  Moving agents around, and supporting mechanisms
+Demo 03 Step 03
+  Methods for finding nearby agents
+Demo 03 Step 04
+  Finding nearby agents with strict borders
+Demo 03 Step 05
+  introducing continuous spaces (vs prevous which have been discreet)
+Demo 03 Step 06
+    continuous and discreet spaces used togeather. discreet spaces are faster to search
+    eg, search discreet spaces quickly, the fine search exact spaces in continuous space
+    buffers are not specified here, as the descreet buffer works adequetly, no need to search continuous space as well
+Demo 03 Step 07
+  Different spaces used for different metrics, eg physical proximity and opinion space
+  This allows agents of simialr positions in each space to interact
+Demo 03 Step 08
+  extension
+Demo 04 Overveiw
+  N-dimensional spaces
+  considerations for processing
+
+
+
+Objects and Uses
+  Rank - number of processes to run
+  Boost Environment -
+  Boost Communicator - The way main retreives information from other processes and between processes (eg initial configs)
+  Repast Process - A process that runs the agents
+  Repast model class - A class containing agents' functions, initial scheduling
+  Schedule - an object that  retreives a handle to an object that manages timing events in repastHPC
+  props file - an input file that contains configurations for the model
+  properties object - useful was of outputing data from all processes
+  sharedContext object - containers that can contain agents managed by other processes
+  Agent Package - A struct that contains all information required to make an agent, including id, rank, type
+  SV dataset - ways of packaging up all data from agents within a process
+  SV dataset builder - a way of building up all the sts then exporting them as one

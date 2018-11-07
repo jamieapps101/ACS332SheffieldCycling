@@ -1,0 +1,23 @@
+plan of action:
+  Make note of contents - Done
+  Produce systems documentation to outline project
+    Concept of operations (who what where how why and when)
+    Requirements
+      System requirements
+      Functional Requirements - Defines function of the system
+      Non-Functional Requirements - criteria athat can be used to judge the operation of the system
+    System Context Diagram
+    //UML Use Case
+    SysML Requriements diagram
+    UML Class Diagram
+    Sequence Diagram
+    Activity Diagram
+    State diagram
+
+  Produce modular instruction set
+
+
+To consider:
+  High Cohesion - everything contributes to the task
+  Low coupling - minimal depedancies between modules
+  cover exceptions?
