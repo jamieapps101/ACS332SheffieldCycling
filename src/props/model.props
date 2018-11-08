@@ -1,0 +1,5 @@
+#Properties file
+stop.at = 5
+count.of.agents = 1000
+random.seed = 74973409
+map.data.name = mapData.txt
