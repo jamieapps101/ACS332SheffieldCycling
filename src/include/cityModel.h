@@ -6,6 +6,9 @@
 	#include "repast_hpc/Properties.h" // to import the properties object
 	#include "repast_hpc/SharedContext.h" // to import the context object
 	#include "modelAgent.h" // to import the agent to be simulated
+	#include "propertiesMap.h" // to store mapVariables
+	#include <string>
+	#include <vector>
 
 	struct mapElementStruct{
 		int altitude;
@@ -21,12 +24,17 @@
 		int agentCount;
 		repast::Properties* props; // to hold the input model properties
 		repast::SharedContext<modelAgent> context; // a context (an area) to store all the agents in
-		struct mapElementStruct * mapElement;
+		propertiesMap cityElevationMap;
+		std::vector<std::vector <int>> commonWork;
+		std::vector<std::vector <int>> commonLiving;
+		int string2int(std::string input);
+		//struct C * mapElement;
 	public:
 		cityModel(std::string propsFile, int argc, char** argv, boost::mpi::communicator* comm);
 		~cityModel();
 		void init();
 		void initSchedule(repast::ScheduleRunner& runner);
+		void initAgents();
 		void executeAgents();
 		void doSomething();
 	};

@@ -1,5 +1,16 @@
 #Properties file
 stop.at = 5
-count.of.agents = 1000
+count.of.agents = 4
 random.seed = 74973409
 map.data.name = mapData.txt
+elevations.map.name = elevations.txt
+common.Work.1 = 20,34
+common.Work.2 = 21,33
+common.Work.3 = 22,32
+common.Work.4 = 23,31
+common.Work.5 = 24,30
+common.Living.1 = 30,44
+common.Living.2 = 31,43
+common.Living.3 = 32,42
+common.Living.4 = 33,41
+common.Living.5 = 34,40

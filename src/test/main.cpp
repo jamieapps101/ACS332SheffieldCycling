@@ -2,40 +2,24 @@
 #include <stdlib.h>
 #include <vector>
 #include <iostream>
-
-int function(std::vector<int> *input);
-void printVector(std::vector<int> input);
+#include "map.h"
 
 int main(void)
 {
-  std::vector<int> * vec;
-  vec = (std::vector<int> *)calloc(1,sizeof(std::vector<int>));
-  printVector(*vec);
-  function(vec);
-  printVector(*vec);
-  //printf("A = %d\n", *a);
-}
-
-int function(std::vector<int> *input)
-{
-  int array[] = {1,2,3};
-  for(int a = 0; a < 3; a++)
+  printf("Getting elevations\n");
+  map localMap("elevations.txt");
+  printf("Making dims vector\n");
+  std::vector<int> dims;
+  printf("Getting dims\n");
+  dims = localMap.getDimentsions();
+  printf("Printing\n");
+  if(dims.size() == 2)
   {
-    (*input).push_back(array[a]);
+    printf("Dims are %d and", dims.at(0));
+    printf("%d\n", dims.at(1));
   }
-}
-
-void printVector(std::vector<int> input)
-{
-  if(input.size() > 0)
-  {
-    for(int a = 0; a < input.size(); a++)
-    {
-      std::cout << "Element " << a << " = " << input.at(a) << std::endl;
-    }
-  }
-  else
-  {
-    std::cout << "No Elements to display" << std::endl;
-  }
+  int x = 0;
+  int y = 3;
+  std::cout << "Element at (" << x << ", " << y << ") was " << localMap.getElevation(x,y) << std::endl;
+  localMap.printMap();
 }

@@ -2,10 +2,10 @@
 include ./env
 # How about some variables?
 
-Processes = 8
+Processes = 1
 
 # Right, now for some recipes.PHONY
-.PHONY : all
+.PHONY : init all
 all: bin/executable
 
 
@@ -13,9 +13,17 @@ all: bin/executable
 build: # This is where all the crazy linking occurs, see other makefile for ref
 	@echo nothing to see here
 
-bin/executable: objects/modelAgent.o objects/cityModel.o objects/main.o
+.PHONY : init
+init:
+	- source ~/.profile
+
+bin/executable: objects/modelAgent.o objects/cityModel.o objects/main.o objects/propertiesMap.o
 	@echo Building Executable
 	@$(MPICXX) $(BOOST_LIB_DIR) $(REPAST_HPC_LIB_DIR) -o ./bin/executable ./objects/*.o $(REPAST_HPC_LIB) $(BOOST_LIBS) -w
+
+objects/propertiesMap.o: src/propertiesMap.cpp
+	@echo Creating propertiesMap.o
+	@$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -I ./include/ -c ./src/propertiesMap.cpp -o ./objects/propertiesMap.o  -w
 
 objects/cityModel.o: src/cityModel.cpp
 	@echo Creating cityModel.o

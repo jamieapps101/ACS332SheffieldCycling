@@ -3,7 +3,9 @@
 
   #include "repast_hpc/AgentId.h"
   #include "repast_hpc/SharedContext.h"
+  #include "propertiesMap.h"
   #include <vector>
+  #include <math.h>
 
   class modelAgent
   {
@@ -16,6 +18,7 @@
     std::vector<int> homeLocation;
     std::vector<int> workLocation;
     float routeTravelSafetyMetric;
+    float distanceToWork;
 
   public:
     modelAgent(repast::AgentId id);
@@ -23,8 +26,8 @@
 
     void makeDecision();
     void assessPath();
+    void init();
     void doSomething();
-    //void
 
     /* Required Getters */
     virtual repast::AgentId & getId(){                   return selfID;    }

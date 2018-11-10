@@ -1,5 +1,6 @@
 #python request map data code
 import numpy as np
+import time
 #import http.client
 import urllib.request
 import urllib.parse
@@ -67,5 +68,6 @@ with open('resolutions.txt', 'w') as rf:
                 ef.write(str(int(elevation))+',')
                 resolution = result2['resolution']
                 rf.write(str(int(resolution))+',')
+                time.sleep(0.5)
             ef.write('\n')
             rf.write('\n')
