@@ -10,11 +10,16 @@
 	#include <string>
 	#include <vector>
 
-	struct mapElementStruct{
-		int altitude;
-		float crimeLevels;
-		float socioEconomicStatus;
+	struct timeStruct
+	{
+		int week;
+		int year;
+	};
 
+	struct monthStruct
+	{
+		std::string name;
+		float temperature;
 	};
 
 	class cityModel
@@ -28,6 +33,12 @@
 		std::vector<std::vector <int>> commonWork;
 		std::vector<std::vector <int>> commonLiving;
 		int string2int(std::string input);
+		struct timeStruct time;
+		std::vector<struct monthStruct> monthTemps;
+		float modelTemp;
+		int weekOffset;
+		float string2float(std::string input);
+		//repast::Random randomObject;
 		//struct C * mapElement;
 	public:
 		cityModel(std::string propsFile, int argc, char** argv, boost::mpi::communicator* comm);
@@ -35,6 +46,7 @@
 		void init();
 		void initSchedule(repast::ScheduleRunner& runner);
 		void initAgents();
+		void temporalEvents();
 		void executeAgents();
 		void doSomething();
 	};

@@ -21,6 +21,7 @@ void propertiesMap::readMap(std::string inputFile)
     file.open(inputFile);
     if(file.is_open())
     {
+      //std::cout << "File opened" << std::endl;
       std::string line;
       int lineNo = 0;
       while(getline(file, line))
@@ -38,19 +39,21 @@ void propertiesMap::readMap(std::string inputFile)
             currentLine.push_back(string2int(line.substr(0,nextCommaPos)));
             line = line.substr(nextCommaPos+1, line.size());
           }
+          mapElementsMatrix.push_back(currentLine);
         }
         else
         {
         }
         lineNo++;
       }
+      //std::cout << "Read " << lineNo << " lines" << std::endl;
       file.close();
     }
     else
     {
       std::cout << "Cannot open map file" << std::endl;
     }
-    std::cout << "Map read from file" << std::endl;
+    //std::cout << "Map read from file" << std::endl;
 }
 
 int propertiesMap::string2int(std::string input)
@@ -74,24 +77,24 @@ int propertiesMap::string2int(std::string input)
 
 int propertiesMap::getElement(int x, int y)
 {
-  return mapElevations.at(y).at(x);
+  return mapElementsMatrix.at(y).at(x);
 }
 
-
-std::vector<int> propertiesMap::getDimentsions()
+std::vector<int> propertiesMap::getDimensions()
 {
   std::vector<int> output;
-  std::vector<int> temp = mapElevations.at(0);
+  std::vector<int> temp = mapElementsMatrix.at(0);
   output.push_back(temp.size());
-  output.push_back(mapElevations.size());
+  output.push_back(mapElementsMatrix.size());
   return output;
 }
 
 void propertiesMap::printMap()
 {
-  for(int a = 0; a < mapElevations.size(); a++)
+  std::cout << "Printing Map" << std::endl;
+  for(int a = 0; a < mapElementsMatrix.size(); a++)
   {
-    for(int b = 0; b < mapElevations.at(0).size(); b++)
+    for(int b = 0; b < mapElementsMatrix.at(0).size(); b++)
     {
       std::cout << getElement(b,a) << ", ";
     }

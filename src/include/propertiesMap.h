@@ -5,15 +5,14 @@
   class propertiesMap
   {
   private:
-    std::vector<std::vector<int>> mapElevations;
-    std::vector<std::vector<int>> mapResolutions;
+    std::vector<std::vector<int>> mapElementsMatrix;
     int string2int(std::string input);
   public:
     propertiesMap();
     ~propertiesMap();
     void readMap(std::string inputFile);
     int getElement(int x, int y);
-    std::vector<int> getDimentsions();
+    std::vector<int> getDimensions();
     void printMap();
   };
 #endif

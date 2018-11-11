@@ -30,3 +30,17 @@ int main(int argc, char** argv)
   repast::RepastProcess::instance()->done(); // instruct the repase process that its done with
   //printf("Ok,I'm done here\n");
 }
+
+// to do
+  // source all data listed below
+    // socio-economic status per area
+      // crime stats
+      // house prices
+      // street lighting
+    // elevation - done
+    // global temp - done
+  // need to read in all data and comminicate to agents
+  // assign random variables to agents eg fitness  - done
+  // add random temporal events to support illness
+  // Create agent decision making and creat output data
+  // work out how to output data

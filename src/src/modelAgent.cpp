@@ -16,7 +16,6 @@ modelAgent::~modelAgent()
 {
 
 }
-
 // insert actions/functions here
 void modelAgent::makeDecision()
 {
@@ -31,22 +30,8 @@ void modelAgent::assessPath()
 void modelAgent::init()
 {
     // need to pick home/work locations here. need to export common work/living locations for this
-
-    if(workLocation.size() ==2 && homeLocation.size() ==2)
-    {
-      distanceToWork = 0;
-      /*
-      distanceToWork = sqrt(pow(homeLocation.at(0)-workLocation.at(0),2) + pow(homeLocation.at(1)-workLocation.at(1),2));
-      */
-      std::cout << "Hey, my distance to work is: " << distanceToWork << std::endl;
-    }
-    else
-    {
-      std::cout << "Agent " << selfID.id() << " on process " << selfID.startingRank() << " doesn't know where they live or work" << std::endl;
-    }
-
+    std::cout<<"My fitness is: " << fitness << std::endl;
 }
-
 void modelAgent::doSomething()
 {
   unsigned long a = 0;
@@ -55,27 +40,30 @@ void modelAgent::doSomething()
     a+=1;
   }
 }
-
+float modelAgent::block2Distance(int input)
+{
+  return (float)input*1.37; // as calculated from lat/long distance measurements from original map
+}
 // insert getters and setters for variables here
 void modelAgent::setCurrentTravelMode(int *input)
 {
   currentTravelMode = *input;
 }
-void modelAgent::setFitness(float *input)
+void modelAgent::setFitness(float input)
 {
-  fitness = *input;
+  fitness = input;
 }
-void modelAgent::setIllness(float*input)
+void modelAgent::setIllness(float input)
 {
-  illness = *input;
+  illness = input;
 }
-void modelAgent::setHomeLocation(std::vector<int> *input)
+void modelAgent::setHomeLocation(std::vector<int> input)
 {
-  homeLocation = *input;
+  homeLocation = input;
 }
-void modelAgent::setWorkLocation(std::vector<int> *input)
+void modelAgent::setWorkLocation(std::vector<int> input)
 {
-  workLocation = *input;
+  workLocation = input;
 }
 void modelAgent::getCurrentTravelMode(int *output)
 {
@@ -96,4 +84,12 @@ void modelAgent::getHomeLocation(std::vector<int> *output)
 void modelAgent::getWorkLocation(std::vector<int> *output)
 {
   *output = workLocation;
+}
+void modelAgent::setCurrentTemp(float input)
+{
+  currentTemp = input;
+}
+void modelAgent::getCurrentTemp(float *output)
+{
+  *output = currentTemp;
 }

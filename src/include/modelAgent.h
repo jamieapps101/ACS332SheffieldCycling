@@ -19,6 +19,7 @@
     std::vector<int> workLocation;
     float routeTravelSafetyMetric;
     float distanceToWork;
+    float currentTemp;
 
   public:
     modelAgent(repast::AgentId id);
@@ -35,15 +36,18 @@
 
     // insert getters and setters for variables here
     void setCurrentTravelMode(int *input);
-    void setFitness(float *input);
-    void setIllness(float*input);
-    void setHomeLocation(std::vector<int> *input);
-    void setWorkLocation(std::vector<int> *input);
+    void setFitness(float input);
+    void setIllness(float input);
+    void setHomeLocation(std::vector<int> input);
+    void setWorkLocation(std::vector<int> input);
+    void setCurrentTemp(float input);
+    void getCurrentTemp(float *output);
     void getCurrentTravelMode(int *output);
     void getFitness(float *output);
     void getIllness(float*output);
     void getHomeLocation(std::vector<int> *output);
     void getWorkLocation(std::vector<int> *output);
+    float block2Distance(int input);
     // insert actions/functions here
 
   };

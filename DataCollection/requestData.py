@@ -12,6 +12,8 @@ startLong = -1.789030
 endLong =    -1.316797
 granularityLat =  16
 granularityLong = 23
+#horizontal dist = 31.23km or 1.3578km/block
+#vertical dist = 22.18km or 1.38626km/block
 
 
 latRes = (endLat-startLat)/granularityLat
