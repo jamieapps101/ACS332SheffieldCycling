@@ -15,6 +15,11 @@ propertiesMap::~propertiesMap()
 
 }
 
+void propertiesMap::readMap(std::string inputFile,std::string keyFile)
+{
+
+}
+
 void propertiesMap::readMap(std::string inputFile)
 {
     std::ifstream file;

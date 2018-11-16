@@ -11,6 +11,7 @@
     propertiesMap();
     ~propertiesMap();
     void readMap(std::string inputFile);
+    void readMap(std::string inputFile,std::string keyFile)
     int getElement(int x, int y);
     std::vector<int> getDimensions();
     void printMap();
