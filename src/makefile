@@ -17,7 +17,7 @@ build: # This is where all the crazy linking occurs, see other makefile for ref
 init:
 	- source ~/.profile
 
-bin/executable: objects/modelAgent.o objects/cityModel.o objects/main.o objects/propertiesMap.o
+bin/executable: objects/modelAgent.o objects/cityModel.o objects/main.o objects/propertiesMap.o objects/DataSource_AgentDecisions.o
 	@echo Building Executable
 	@$(MPICXX) $(BOOST_LIB_DIR) $(REPAST_HPC_LIB_DIR) -o ./bin/executable ./objects/*.o $(REPAST_HPC_LIB) $(BOOST_LIBS) -w
 
@@ -32,6 +32,11 @@ objects/cityModel.o: src/cityModel.cpp
 objects/modelAgent.o: src/modelAgent.cpp
 	@echo Creating modelAgent.o
 	@$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -I ./include/ -c ./src/modelAgent.cpp -o ./objects/modelAgent.o  -w
+
+objects/DataSource_AgentDecisions.o: src/DataSource_AgentDecisions.cpp
+		@echo Creating DataSource_AgentDecisions.o
+		@$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -I ./include/ -c ./src/DataSource_AgentDecisions.cpp -o ./objects/DataSource_AgentDecisions.o  -w
+
 
 objects/main.o: src/main.cpp
 	@echo Creating main.o

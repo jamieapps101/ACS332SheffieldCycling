@@ -1,27 +1,50 @@
+#include <string>
 #include <stdio.h>
 #include <iostream>
+
 #include "cityModel.h"
 #include "modelAgent.h"
-#include <boost/mpi.hpp>
-#include "repast_hpc/AgentId.h"
-#include "repast_hpc/Properties.h"
-#include "repast_hpc/RepastProcess.h"
-#include "repast_hpc/initialize_random.h"
 #include "propertiesMap.h"
-#include <string>
+#include "DataSource_AgentDecisions.h"
+
+#include <boost/mpi.hpp>
 #include "repast_hpc/Random.h"
-//#include <Random.h>
+#include "repast_hpc/AgentId.h"
+#include "repast_hpc/Utilities.h"
+#include "repast_hpc/SVDataSet.h"
+#include "repast_hpc/Properties.h"
+#include "repast_hpc/TDataSource.h"
+#include "repast_hpc/RepastProcess.h"
+#include "repast_hpc/SVDataSetBuilder.h"
+#include "repast_hpc/initialize_random.h"
+
+//DataSource_AgentDecisions::DataSource_AgentDecisions(repast::SharedContext<modelAgent>* c) : context(c){ }
 
 cityModel::cityModel(std::string propsFile, int argc, char** argv, boost::mpi::communicator* comm): context(comm)
 {
+  //std::cout << "Flag 0" << std::endl;
   props = new repast::Properties(propsFile, argc, argv, comm); // import properties from model.props
-	stopAt = repast::strToInt(props->getProperty("stop.at"));
-  agentCount = repast::strToInt(props->getProperty("count.of.agents"));
-  std::string mapElevationsName = props->getProperty("elevations.map.name");
+  //std::cout << "Flag 1" << std::endl;
   initializeRandom(*props, comm);
-  std::string filename = "data/" + mapElevationsName;
-  std::cout << "map name : " << filename << std::endl;
-  cityElevationMap.readMap(filename);
+  //std::cout << "Flag 2" << std::endl;
+  stopAt = repast::strToInt(props->getProperty("stop.at"));
+  std::cout << "Stopping at: " << stopAt << std::endl;
+  agentCount = repast::strToInt(props->getProperty("count.of.agents"));
+
+  std::string mapElevationsName = props->getProperty("elevations.map.name");
+  std::string elevationsPath = "data/" + mapElevationsName;
+  //std::cout << "Elevations map name : " << elevationsPath << std::endl;
+  cityElevationMap.readMap(elevationsPath);
+  //cityElevationMap.printMap();
+
+  std::string mapSEName = props->getProperty("SE.map.name");
+  std::string mapSEConfName = props->getProperty("SE.map.conf.name");
+  std::string SEPath = "data/" + mapSEName;
+  std::string SEConfPath = "data/" + mapSEConfName;
+  //std::cout << "SES map name : " << SEConfPath << std::endl;
+  socioEconomicsMap.readMap(SEPath,SEConfPath);
+  //socioEconomicsMap.printMap();
+
   std::vector<string> locationOptions;
   locationOptions.push_back("Work");
   locationOptions.push_back("Living");
@@ -44,10 +67,14 @@ cityModel::cityModel(std::string propsFile, int argc, char** argv, boost::mpi::c
       if(a==0) // aka work
       {
         commonWork.push_back(coordinates);
+        //std::cout << "WorkX: " << coordinates.at(0) << std::endl;
+        //std::cout << "WorkY: " << coordinates.at(1) << std::endl;
       }
       else // aka living
       {
         commonLiving.push_back(coordinates);
+        //std::cout << "livingX: " << coordinates.at(0) << std::endl;
+        //std::cout << "livingY: " << coordinates.at(1) << std::endl;
       }
     }
   }
@@ -62,11 +89,27 @@ cityModel::cityModel(std::string propsFile, int argc, char** argv, boost::mpi::c
     temp.temperature = string2float(props->getProperty(currentParameterName));
     monthTemps.push_back(temp);
   }
+
+  std::string outputFileName = props->getProperty("output.name");
+  std::string outputPath = "./output/" + outputFileName;
+
+  // Data collection
+  // Create the data set builder
+  std::string fileOutputName(outputPath);
+  repast::SVDataSetBuilder builder(fileOutputName.c_str(), ",", repast::RepastProcess::instance()->getScheduleRunner().schedule());
+
+  // Create the individual data sets to be added to the builder
+	DataSource_AgentDecisions* agentDecisions_DataSource = new DataSource_AgentDecisions(&context);
+  builder.addDataSource(createSVDataSource("Total", agentDecisions_DataSource, std::plus<int>()));
+
+  // Use the builder to create the data set
+  agentDecisions = builder.createDataSet();
 }
 
 cityModel::~cityModel()
 {
   delete props;
+  delete agentDecisions;
 }
 
 void cityModel::init() // initialise the model with agents
@@ -98,8 +141,13 @@ void cityModel::initAgents() // this allows agents to do their own initialiseati
   context.selectAgents(agentCount, agents); // get random ordered selection of agents and add them to container
   for(int iterator = 0; iterator < agents.size(); iterator++)// iterate through all agents
   {
-    (agents.at(iterator))->init(); // for each agent, execute its init task;
+    (agents.at(iterator))->init(socioEconomicsMap); // for each agent, execute its init task;
   }
+}
+
+void cityModel::doSomething()
+{
+  std::cout << "Hello" << std::endl;
 }
 
 void cityModel::executeAgents() // this gets random order of all agents in context and runs them
@@ -116,10 +164,21 @@ void cityModel::initSchedule(repast::ScheduleRunner& runner)
 {
   //runner.scheduleEvent(1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::doSomething)));
   runner.scheduleEvent(0, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::initAgents)));
-  runner.scheduleEvent(0.5, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::temporalEvents)));
-  //runner.scheduleEvent(2, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::executeAgents)));
+  //runner.scheduleEvent(0.5, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::temporalEvents)));
+  runner.scheduleEvent(1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::executeAgents)));
   //runner.scheduleEndEvent(repast::Schedule::FunctorPtr(new repast::MethodFunctor<RepastHPCDemoModel> (this, &RepastHPCDemoModel::recordResults)));
-	runner.scheduleStop(stopAt);
+
+  // Data collection
+  runner.scheduleEvent(1.1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(agentDecisions, &repast::DataSet::record)));
+  runner.scheduleEvent(1.2, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(agentDecisions, &repast::DataSet::write)));
+  runner.scheduleEndEvent(repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(agentDecisions, &repast::DataSet::write)));
+
+  runner.scheduleStop(stopAt);
+}
+
+
+void cityModel::dataCollection()
+{
 
 }
 

@@ -1,17 +1,29 @@
 #ifndef AGENT_HEADER
   #define AGENT_HEADER
+  #define CYCLEMODE 1
 
   #include "repast_hpc/AgentId.h"
   #include "repast_hpc/SharedContext.h"
   #include "propertiesMap.h"
   #include <vector>
   #include <math.h>
+  #include <cmath>
+
+  struct pathInfoStruct
+  {
+    int deltaHeight;
+    int distance;
+    std::vector<int> pathX;
+    std::vector<int> pathY;
+    int socioEconSum;
+  };
 
   class modelAgent
   {
   private:
     repast::AgentId selfID;
     // insert private variables
+    propertiesMap SESLocal;
     int currentTravelMode;
     float fitness;
     float illness;
@@ -26,8 +38,8 @@
     ~modelAgent();
 
     void makeDecision();
-    void assessPath();
-    void init();
+    struct pathInfoStruct assessPath();
+    void init(propertiesMap SESinput);
     void doSomething();
 
     /* Required Getters */
@@ -42,7 +54,7 @@
     void setWorkLocation(std::vector<int> input);
     void setCurrentTemp(float input);
     void getCurrentTemp(float *output);
-    void getCurrentTravelMode(int *output);
+    int getCurrentTravelMode();
     void getFitness(float *output);
     void getIllness(float*output);
     void getHomeLocation(std::vector<int> *output);

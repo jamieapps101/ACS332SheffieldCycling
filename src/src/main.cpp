@@ -8,18 +8,19 @@
 int main(int argc, char** argv)
 {
 
-  //printf("Hello World, I'm starting\n"); // Say hi to the world!!!!
+  printf("Hello World, I'm starting\n"); // Say hi to the world!!!!
   std::string configFile = argv[1]; // The name of the configuration file is config.props (Arg 1)
   std::string propsFile = argv[2]; // The name of the properties file is model.props (Arg 2)
-
+  //std::cout << "Flag a" << std::endl;
   boost::mpi::environment env(argc, argv); // initialise the MPI invironment
   boost::mpi::communicator world; // make an MPI communicator onbject to talk between processes
-
+//std::cout << "Flag b" << std::endl;
   repast::RepastProcess::init(configFile); // initialise the repast processes based on the config file
-
+  //std::cout << "Flag c" << std::endl;
   cityModel* model = new cityModel(propsFile, argc, argv, &world); // initialise the model object that runs the model
+  //std::cout << "Flag d" << std::endl;
   repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner(); // initialise a scheduler that shedules the model processes
-
+  //std::cout << "Flag e" << std::endl;
   model->init(); // de-reference the model and run the init function
   model->initSchedule(runner); // pass areference to the schedule object to the model instance
 
@@ -34,13 +35,15 @@ int main(int argc, char** argv)
 // to do
   // source all data listed below
     // socio-economic status per area
-      // crime stats
-      // house prices
-      // street lighting
+      // crime stats - cancel
+      // house prices - cancel
+      // street lighting - cancel
+      // children in poverty - done
     // elevation - done
     // global temp - done
   // need to read in all data and comminicate to agents
   // assign random variables to agents eg fitness  - done
   // add random temporal events to support illness
-  // Create agent decision making and creat output data
-  // work out how to output data
+  // Create agent decision making and
+  // create output data
+  // work out how to output data and do it

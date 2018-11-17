@@ -1,0 +1,1 @@
+/usr/bin/c++  -pedantic -Wall -Wextra -Werror  -g  -rdynamic CMakeFiles/fl-bin.dir/src/main.cpp.o  -o bin/fuzzylite-debug -Wl,-rpath,/home/jamie/Downloads/fuzzylite-6.0-linux64/fuzzylite-6.0/fuzzylite/debug/bin: bin/libfuzzylite-debug.so.6.0 
