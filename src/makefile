@@ -4,6 +4,7 @@ include ./env
 
 Processes = 1
 
+
 # Right, now for some recipes.PHONY
 .PHONY : init all
 all: bin/executable
@@ -19,7 +20,7 @@ init:
 
 bin/executable: objects/modelAgent.o objects/cityModel.o objects/main.o objects/propertiesMap.o objects/DataSource_AgentDecisions.o
 	@echo Building Executable
-	@$(MPICXX) $(BOOST_LIB_DIR) $(REPAST_HPC_LIB_DIR) -o ./bin/executable ./objects/*.o $(REPAST_HPC_LIB) $(BOOST_LIBS) -w
+	@$(MPICXX) $(BOOST_LIB_DIR) $(REPAST_HPC_LIB_DIR) $(FUZZYLITE_LIB_DIR) -o ./bin/executable ./objects/*.o $(REPAST_HPC_LIB) $(BOOST_LIBS) $(FUZZYLITE_LIBS) -w
 
 objects/propertiesMap.o: src/propertiesMap.cpp
 	@echo Creating propertiesMap.o
@@ -27,7 +28,7 @@ objects/propertiesMap.o: src/propertiesMap.cpp
 
 objects/cityModel.o: src/cityModel.cpp
 	@echo Creating cityModel.o
-	@$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -I ./include/ -c ./src/cityModel.cpp -o ./objects/cityModel.o  -w
+	@$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) $(FUZZYLITE_INCLUDE) -I ./include/ -c ./src/cityModel.cpp -o ./objects/cityModel.o  -w
 
 objects/modelAgent.o: src/modelAgent.cpp
 	@echo Creating modelAgent.o
@@ -36,6 +37,10 @@ objects/modelAgent.o: src/modelAgent.cpp
 objects/DataSource_AgentDecisions.o: src/DataSource_AgentDecisions.cpp
 		@echo Creating DataSource_AgentDecisions.o
 		@$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -I ./include/ -c ./src/DataSource_AgentDecisions.cpp -o ./objects/DataSource_AgentDecisions.o  -w
+
+#objects/Engine.o: src/fuzzylite/src/Engine.cpp
+#		@echo Creating fuzzylute engine.o
+#		@$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) $(FUZZYLITELIBS) -I ./include/ -c ./src/fuzzylite/src/Engine.cpp -o ./objects/engine.o  -w
 
 
 objects/main.o: src/main.cpp

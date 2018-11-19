@@ -43,6 +43,7 @@
 		int weekOffset;
 		float string2float(std::string input);
 		repast::SVDataSet* agentDecisions;
+		void buildEngine();
 
 		//repast::SVDataSet* agentSafetyPerceptions;
 		//repast::Random randomObject;

@@ -15,3 +15,8 @@ BOOST_LIBS=-lboost_mpi-mt -lboost_serialization-mt -lboost_system-mt -lboost_fil
 REPAST_HPC_INCLUDE=-I/home/jamie/sfw/repast_hpc-2.2.0/include/
 REPAST_HPC_LIB_DIR=-L/home/jamie/sfw/repast_hpc-2.2.0/lib/
 REPAST_HPC_LIB=-lrepast_hpc-2.2.0
+
+FUZZYLITE_INCLUDE=-I/home/jamie/Documents/ACS332SheffieldCycling/src/fuzzylite/
+FUZZYLITE_LIB_DIR=-L/home/jamie/Documents/ACS332SheffieldCycling/src/fuzzylite/release/bin
+FUZZYLITE_LIBS=-lfuzzylite-static
+
