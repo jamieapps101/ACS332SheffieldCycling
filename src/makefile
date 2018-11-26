@@ -24,7 +24,7 @@ bin/executable: objects/modelAgent.o objects/cityModel.o objects/main.o objects/
 
 objects/propertiesMap.o: src/propertiesMap.cpp
 	@echo Creating propertiesMap.o
-	@$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -I ./include/ -c ./src/propertiesMap.cpp -o ./objects/propertiesMap.o  -w
+	@$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) $(FUZZYLITE_INCLUDE) -I ./include/ -c ./src/propertiesMap.cpp -o ./objects/propertiesMap.o  -w
 
 objects/cityModel.o: src/cityModel.cpp
 	@echo Creating cityModel.o
@@ -32,11 +32,11 @@ objects/cityModel.o: src/cityModel.cpp
 
 objects/modelAgent.o: src/modelAgent.cpp
 	@echo Creating modelAgent.o
-	@$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -I ./include/ -c ./src/modelAgent.cpp -o ./objects/modelAgent.o  -w
+	@$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) $(FUZZYLITE_INCLUDE) -I ./include/ -c ./src/modelAgent.cpp -o ./objects/modelAgent.o  -w
 
 objects/DataSource_AgentDecisions.o: src/DataSource_AgentDecisions.cpp
 		@echo Creating DataSource_AgentDecisions.o
-		@$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -I ./include/ -c ./src/DataSource_AgentDecisions.cpp -o ./objects/DataSource_AgentDecisions.o  -w
+		@$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) $(FUZZYLITE_INCLUDE) -I ./include/ -c ./src/DataSource_AgentDecisions.cpp -o ./objects/DataSource_AgentDecisions.o  -w
 
 #objects/Engine.o: src/fuzzylite/src/Engine.cpp
 #		@echo Creating fuzzylute engine.o
@@ -45,7 +45,7 @@ objects/DataSource_AgentDecisions.o: src/DataSource_AgentDecisions.cpp
 
 objects/main.o: src/main.cpp
 	@echo Creating main.o
-	@$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) -I ./include/ -c ./src/main.cpp -o ./objects/main.o  -w
+	@$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) $(FUZZYLITE_INCLUDE) -I ./include/ -c ./src/main.cpp -o ./objects/main.o  -w
 
 .PHONY : run
 run:  #*.props

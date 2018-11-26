@@ -12,6 +12,7 @@
 	#include "repast_hpc/SVDataSetBuilder.h"
 	#include <string>
 	#include <vector>
+	#include "fl/Headers.h"
 
 	struct timeStruct
 	{
@@ -43,7 +44,7 @@
 		int weekOffset;
 		float string2float(std::string input);
 		repast::SVDataSet* agentDecisions;
-		void buildEngine();
+		std::vector<struct exportAgentPathInfoStruct> bigFuckOffListOfAgentPaths;
 
 		//repast::SVDataSet* agentSafetyPerceptions;
 		//repast::Random randomObject;
@@ -58,6 +59,7 @@
 		void executeAgents();
 		void doSomething();
 		void dataCollection();
+		void assessOtherProcesses();
 	};
 
 #endif

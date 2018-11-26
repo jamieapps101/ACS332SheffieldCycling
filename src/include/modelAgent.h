@@ -8,6 +8,8 @@
   #include <vector>
   #include <math.h>
   #include <cmath>
+  #include "fl/Headers.h"
+
 
   struct pathInfoStruct
   {
@@ -16,6 +18,26 @@
     std::vector<int> pathX;
     std::vector<int> pathY;
     int socioEconSum;
+  };
+
+  struct exportAgentPathInfoStruct
+  {
+    std::vector<int> homeLocation;
+    std::vector<int> workLocation;
+    repast::AgentId selfID;
+  };
+
+  struct fuzzyLogicStruct
+  {
+    fl::Engine* engine;
+    fl::InputVariable* fitnessInput;
+    fl::InputVariable* pathLengthInput;
+    fl::InputVariable* SESPathInput;
+    fl::InputVariable* deltaHeightInput;
+    fl::InputVariable* temperatureInput;
+    fl::InputVariable* safetyMetricInput;
+    fl::OutputVariable* commuteChoiceOutput;
+    fl::RuleBlock* mamdani;
   };
 
   class modelAgent
@@ -32,11 +54,14 @@
     float routeTravelSafetyMetric;
     float distanceToWork;
     float currentTemp;
+    //fl::Engine* buildEngine();
+    struct fuzzyLogicStruct fuzzyEngine;
+    struct fuzzyLogicStruct buildEngine();
 
   public:
     modelAgent(repast::AgentId id);
     ~modelAgent();
-
+    void didICrash();
     void makeDecision();
     struct pathInfoStruct assessPath();
     void init(propertiesMap SESinput);
@@ -60,6 +85,9 @@
     void getHomeLocation(std::vector<int> *output);
     void getWorkLocation(std::vector<int> *output);
     float block2Distance(int input);
+    void setEngine(fl::Engine* inputEngine);
+    float getRouteTravelSafetyMetric();
+    struct exportAgentPathInfoStruct getAgentPathInfo()
     // insert actions/functions here
 
   };

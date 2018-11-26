@@ -17,7 +17,6 @@
 #include "repast_hpc/RepastProcess.h"
 #include "repast_hpc/SVDataSetBuilder.h"
 #include "repast_hpc/initialize_random.h"
-#include "fl/Headers.h"
 
 //DataSource_AgentDecisions::DataSource_AgentDecisions(repast::SharedContext<modelAgent>* c) : context(c){ }
 
@@ -118,7 +117,7 @@ void cityModel::init() // initialise the model with agents
   int rank = repast::RepastProcess::instance()->rank(); // get rank of this process' instance of the model
   std::cout << "Starting process " << rank << " with " << agentCount << " agents." << std::endl;
   repast::TriangleGenerator gen = repast::Random::instance()->createTriangleGenerator(0,0.5,1);
-  buildEngine();
+  //buildEngine();
   for(int i = 0; i < agentCount; i++) // a counter to count upto the desired number of agents
   {
     repast::AgentId id(i, rank, 0); // create an agentID object, with its ID, starting process number and type (left as 0)
@@ -135,6 +134,34 @@ void cityModel::init() // initialise the model with agents
     agent->setFitness(gen.next());
     context.addAgent(agent); // add this agent to the process context
   }
+}
+
+void cityModel::assessOtherProcesses()
+{
+  int rank = repast::RepastProcess::instance()->rank();
+  int worldSize= repast::RepastProcess::instance()->worldSize(); // get number of processes
+  repast::AgentRequest req(rank);
+  float totalSumTSM = 0;
+  for(int i = 0; i < worldSize; i++)
+  {
+    float processSumTSM = 0;            // For each process
+    float processAverageTSM = 0;
+    if(i != rank)
+    {                                           // ... except this one
+      std::vector<modelAgent*> agents;
+      context.selectAgents(context.size(), agents);                 // Choose 5 local agents randomly
+      for(size_t j = 0; j < agents.size(); j++)
+      {
+        processSumTSM += agents.at(j)-> getRouteTravelSafetyMetric();
+        bigFuckOffListOfAgentPaths.add(agents.at(j)->getAgentPathInfo());
+        // get agent path information here
+      }
+      float processAverageTSM = processSumTSM / (float)(agents.size()-1);
+     //add all path informaiton to a modelwide structure
+    }
+    totalAveragesSumTSM += processAverageTSM;
+  }
+  float totalAveragesTSM = totalAveragesSumTSM/worldSize;
 }
 
 void cityModel::initAgents() // this allows agents to do their own initialiseations here
@@ -182,19 +209,6 @@ void cityModel::initSchedule(repast::ScheduleRunner& runner)
 void cityModel::dataCollection()
 {
 
-}
-
-void cityModel::buildEngine()
-{
-  //using namespace fl;
-  fl::Engine* engine = new fl::Engine;
-  fl::InputVariable* fitnessInput = new fl::InputVariable;
-  fitnessInput->setName("fitness");
-  fitnessInput->setDescription("");
-  fitnessInput->setEnabled(true);
-  fitnessInput->setRange(0.000, 1.000);
-  fitnessInput->addTerm(new fl::Ramp("unfit", 1.000, 0.000));
-  fitnessInput->addTerm(new fl::Ramp("fit", 0.000, 1.000));
 }
 
 void cityModel::temporalEvents() // to be executed with every tick, manages temporal events;
