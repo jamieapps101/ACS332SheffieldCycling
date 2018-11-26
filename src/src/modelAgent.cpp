@@ -11,6 +11,9 @@ modelAgent::modelAgent(repast::AgentId id)
     homeLocation.push_back(0);
     workLocation.push_back(0);
   }
+  travelSafetyMetric = 0.0;
+  setRuleWeightsCheck = false;
+  previousCollision = false;
 }
 
 modelAgent::~modelAgent()
@@ -19,13 +22,34 @@ modelAgent::~modelAgent()
 }
 // insert actions/functions here
 
-void modelAgent::didICrash()
+void modelAgent::setPreviousColision(bool input)
 {
-
+  previousCollision = input;
 }
+
+void modelAgent::didICrash(propertiesMap internalCollisionsMap)
+{
+  for(int a = 0; a < internalAgentPathInfo.pathX.size(); a++)
+  {
+    int x = internalAgentPathInfo.pathX.at(a);
+    int y = internalAgentPathInfo.pathY.at(a);
+    int cellBusyness = internalCollisionsMap.getElement(x,y);
+    double cellcrashThreshold = (double)cellBusyness*0.0001; // multiply by a constant to set proportional crash likelyhood based on cell busyness, ie per bike crossing, chance of crash increases by 0.01%
+    double randomDouble = repast::Random::instance()->nextDouble();
+    if(randomDouble < cellcrashThreshold)
+    {
+      previousCollision = true;
+      break;
+    }
+  }
+}
+
 void modelAgent::makeDecision()
 {
   struct pathInfoStruct pathInfo = assessPath();
+  internalAgentPathInfo.pathX = pathInfo.pathX;
+  internalAgentPathInfo.pathY = pathInfo.pathY;
+  internalAgentPathInfo.travelMode = currentTravelMode;
   std::cout << "homeX " << homeLocation.at(0) << std::endl;
   std::cout << "homeY " << homeLocation.at(1) << std::endl;
   std::cout << "workX " << workLocation.at(0) << std::endl;
@@ -35,14 +59,26 @@ void modelAgent::makeDecision()
   std::cout << "socioEconSum " << pathInfo.socioEconSum << std::endl;
   std::cout << std::endl;
   fuzzyEngine.fitnessInput->setValue(fitness);
-  fuzzyEngine.pathLengthInput->setValue(pathInfo.distance);
-  fuzzyEngine.SESPathInput->setValue(pathInfo.socioEconSum);
-  fuzzyEngine.deltaHeightInput->setValue(pathInfo.deltaHeight);
-  fuzzyEngine.temperatureInput->setValue(currentTemp);
+  std::cout << "Flag 1" << std::endl;
+  //fuzzyEngine.pathLengthInput->setValue(pathInfo.distance);
+  std::cout << "Flag 2" << std::endl;
+  //fuzzyEngine.SESPathInput->setValue(pathInfo.socioEconSum);
+  std::cout << "Flag 3" << std::endl;
+  //fuzzyEngine.deltaHeightInput->setValue(pathInfo.deltaHeight);
+  std::cout << "Flag 4" << std::endl;
+  //fuzzyEngine.temperatureInput->setValue(currentTemp);
   //fuzzyEngine.safetyMetricInput->setValue(fitness); // need to be implimented
-
-  fuzzyEngine.engine->process();
+  std::cout << "Abt to infer" << std::endl;
+  //fuzzyEngine.engine->process();
   float output = fuzzyEngine.commuteChoiceOutput->getValue();
+  if(output > 0.5)
+  {
+    currentTravelMode = CYCLEMODE;
+  }
+  else
+  {
+    currentTravelMode = DRIVEMODE;
+  }
   std::cout << "Fuzzy out is " << output << std::endl;
 }
 
@@ -97,7 +133,7 @@ void modelAgent::init(propertiesMap SESinput)
     std::cout<<"My fitness is: " << fitness << std::endl;
     SESLocal = SESinput;
     std::cout<< "and my map got here ok" << std::endl;
-    fuzzyEngine = buildEngine();
+    //fuzzyEngine = buildEngine();/////////////////////////////////////////////////////////////////////////////////////////<<< don't forget!!!
     //SESLocal.printMap();
 }
 void modelAgent::doSomething()
@@ -161,15 +197,14 @@ void modelAgent::getCurrentTemp(float *output)
 {
   *output = currentTemp;
 }
-
-float getRouteTravelSafetyMetric()
+float modelAgent::getTSM()
 {
-  return float routeTravelSafetyMetric;
+  return travelSafetyMetric;
 }
-
 struct fuzzyLogicStruct modelAgent::buildEngine()
 {
   struct fuzzyLogicStruct internal;
+
   internal.engine = new fl::Engine;
   internal.fitnessInput = new fl::InputVariable;
   {
@@ -181,19 +216,18 @@ struct fuzzyLogicStruct modelAgent::buildEngine()
     internal.fitnessInput->addTerm(new fl::Ramp("fit", 0.000, 1.000));
   }
   internal.engine->addInputVariable(internal.fitnessInput);
+
   internal.pathLengthInput = new fl::InputVariable;
   {
     internal.pathLengthInput->setName("pathLength");
     internal.pathLengthInput->setDescription("");
     internal.pathLengthInput->setEnabled(true);
     internal.pathLengthInput->setRange(0.000, 5.000); // up to 5k segmentation, see first report
-    internal.pathLengthInput->addTerm(new fl::Ramp("vShort",     1.000, 0.000));
-    internal.pathLengthInput->addTerm(new fl::Triangle("Short",  0.000, 1.000, 2.000));
-    internal.pathLengthInput->addTerm(new fl::Triangle("Medium", 1.000, 2.000, 3.000));
-    internal.pathLengthInput->addTerm(new fl::Triangle("Long",   2.000, 3.000, 4.000));
-    internal.pathLengthInput->addTerm(new fl::Ramp("vLong", 3.000, 5.000));
+    internal.pathLengthInput->addTerm(new fl::Ramp("short", 5.000, 0.000));
+    internal.pathLengthInput->addTerm(new fl::Ramp("large ", 0.000, 5.000));
   }
   internal.engine->addInputVariable(internal.pathLengthInput);
+
   internal.SESPathInput = new fl::InputVariable; //// Needs calibration based on data
   {
     internal.SESPathInput->setName("SESPath");
@@ -221,11 +255,8 @@ struct fuzzyLogicStruct modelAgent::buildEngine()
     internal.temperatureInput->setDescription("");
     internal.temperatureInput->setEnabled(true);
     internal.temperatureInput->setRange(0.000, 30.000);
-    internal.temperatureInput->addTerm(new fl::Ramp("cold", 5.000, 0.000));
-    internal.temperatureInput->addTerm(new fl::Triangle("cool",  2.500, 7.500, 12.500));
-    internal.temperatureInput->addTerm(new fl::Triangle("meh",  10.000, 15.000, 20.000));
-    internal.temperatureInput->addTerm(new fl::Triangle("warm",  17.500, 22.500, 27.500));
-    internal.temperatureInput->addTerm(new fl::Ramp("hot", 25.000, 30.000));
+    internal.temperatureInput->addTerm(new fl::Ramp("cool",  30.00, 0.00));
+    internal.temperatureInput->addTerm(new fl::Ramp("warm",  0.00, 30.00));
   }
   internal.engine->addInputVariable(internal.temperatureInput);
   internal.safetyMetricInput = new fl::InputVariable;
@@ -238,7 +269,6 @@ struct fuzzyLogicStruct modelAgent::buildEngine()
     internal.safetyMetricInput->addTerm(new fl::Ramp("safe", 0.000, 1.000));
   }
   internal.engine->addInputVariable(internal.safetyMetricInput);
-
   internal.commuteChoiceOutput = new fl::OutputVariable; // look at this
   {
     internal.commuteChoiceOutput->setName("commuteChoice");
@@ -264,26 +294,78 @@ struct fuzzyLogicStruct modelAgent::buildEngine()
     internal.mamdani->setDisjunction(fl::null);
     internal.mamdani->setImplication(new fl::AlgebraicProduct);
     internal.mamdani->setActivation(new fl::General);
-    //internal.mamdani->addRule(Rule::parse("if obstacle is left then mSteer is right", engine));
-  }
-  internal.engine->addRuleBlock(internal.mamdani);
+    /*
+    std::vector<std::string> rules;
+    rules.push_back("if fitness is fit and pathLength is short and SESPath is nice and deltaHeight is small and temperature is warm and safetyMetric is safe then commuteChoice is cycle");
+    rules.push_back("if fitness is fit and pathLength is long and SESPath is nice and deltaHeight is small and temperature is warm and safetyMetric is safe then commuteChoice is cycle");
+    rules.push_back("if fitness is fit and pathLength is short and SESPath is nice and deltaHeight is large and temperature is warm and safetyMetric is safe then commuteChoice is cycle");
+    rules.push_back("if fitness is fit and pathLength is short and SESPath is nice and deltaHeight is large and temperature is warm and safetyMetric is safe then commuteChoice is cycle");
 
+    rules.push_back("if fitness is fit and pathLength is long and SESPath is notNice and deltaHeight is small and temperature is warm and safetyMetric is unsafe then commuteChoice is notCycle");
+    rules.push_back("if fitness is unfit and pathLength is short and SESPath is nice and deltaHeight is small and temperature is warm and safetyMetric is safe then commuteChoice is notCycle");
+    rules.push_back("if fitness is unfit and pathLength is long and SESPath is notNice and deltaHeight is large and temperature is cool and safetyMetric is unsafe then commuteChoice is notCycle");
+
+    std::vector<float> internalRuleWeight;
+    internalRuleWeight.push_back(1);
+    internalRuleWeight.push_back(1);
+    internalRuleWeight.push_back(1);
+    internalRuleWeight.push_back(1);
+    internalRuleWeight.push_back(1);
+    internalRuleWeight.push_back(1);
+    internalRuleWeight.push_back(1);
+
+    if(setRuleWeightsCheck == true)
+    {
+      internalRuleWeight = ruleWeight;
+    }
+    for(int iterator = 0; iterator < rules.size(); iterator++)
+    {
+      std::string argsString = rules.at(iterator); //+ " with " + std::to_string(internalRuleWeight.at(iterator));
+      std::cout << "argsString " << argsString << std::endl;
+      //internal.mamdani->addRule(fl::Rule::parse(argsStrinf, internal.engine));
+    }
+    */
+    std::cout << "I got here!" << std::endl;
+    internal.mamdani->addRule(fl::Rule::parse("if fitness is fit   and pathLength is short then commuteChoice is cycle", internal.engine));
+    std::cout << "I also got here!" << std::endl;
+    /*
+    internal.mamdani->addRule(fl::Rule::parse("if fitness is fit   and pathLength is long  and SESPath is nice    and deltaHeight is small and temperature is warm and safetyMetric is safe   then commuteChoice is cycle", internal.engine));
+    internal.mamdani->addRule(fl::Rule::parse("if fitness is fit   and pathLength is short and SESPath is nice    and deltaHeight is small and temperature is warm and safetyMetric is safe   then commuteChoice is cycle", internal.engine));
+    internal.mamdani->addRule(fl::Rule::parse("if fitness is fit   and pathLength is short and SESPath is nice    and deltaHeight is large and temperature is warm and safetyMetric is safe   then commuteChoice is cycle", internal.engine));
+    internal.mamdani->addRule(fl::Rule::parse("if fitness is fit   and pathLength is long  and SESPath is notNice and deltaHeight is small and temperature is warm and safetyMetric is unsafe then commuteChoice is notCycle", internal.engine));
+    internal.mamdani->addRule(fl::Rule::parse("if fitness is unfit and pathLength is short and SESPath is nice    and deltaHeight is small and temperature is warm and safetyMetric is safe   then commuteChoice is notCycle", internal.engine));
+    */
+    internal.mamdani->addRule(fl::Rule::parse("if fitness is unfit and pathLength is large then commuteChoice is notCycle", internal.engine));
+    std::cout << "and here! " << std::endl;
+  }
+  /*
+  internal.engine->addRuleBlock(internal.mamdani);
   std::string status;
   if (not internal.engine->isReady(&status))
   {
       //return null;
+      std::cout << "Well Fuck" << std::endl;
   }
   else
   {
     return internal;
   }
+  */
 }
-
-struct exportAgentPathInfoStruct getAgentPathInfo()
+void modelAgent::setRuleWeights(std::vector<float> input)
 {
-  struct exportAgentPathInfoStruct internal;
-  internal.homeLocation = homeLocation;
-  internal.workLocation = workLocation;
-  internal.selfID = selfID;
-  return internal;
+  ruleWeight = input;
+  setRuleWeightsCheck = true;
+}
+struct exportAgentPathInfoStruct modelAgent::getAgentPathInfo()
+{
+  //struct exportAgentPathInfoStruct internal;
+  //internal.homeLocation = homeLocation;
+  //internal.workLocation = workLocation;
+  //internal.selfID = selfID;
+  return internalAgentPathInfo;
+}
+void modelAgent::setTSM(float input)
+{
+  travelSafetyMetric = input;
 }

@@ -2,12 +2,16 @@
 include ./env
 # How about some variables?
 
-Processes = 1
+Processes = 10
 
 
 # Right, now for some recipes.PHONY
 .PHONY : init all
 all: bin/executable
+
+.PHONY : count
+count:
+	cloc --exclude-dir=fuzzylite,output --exclude-list-file=makefile *
 
 
 .PHONY : build
@@ -49,7 +53,6 @@ objects/main.o: src/main.cpp
 
 .PHONY : run
 run:  #*.props
-	#source ~/.profile
 	@echo Running Simulation
 	@mpirun -n $(Processes) ./bin/executable ./props/config.props ./props/model.props
 

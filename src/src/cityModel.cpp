@@ -18,8 +18,6 @@
 #include "repast_hpc/SVDataSetBuilder.h"
 #include "repast_hpc/initialize_random.h"
 
-//DataSource_AgentDecisions::DataSource_AgentDecisions(repast::SharedContext<modelAgent>* c) : context(c){ }
-
 cityModel::cityModel(std::string propsFile, int argc, char** argv, boost::mpi::communicator* comm): context(comm)
 {
   //std::cout << "Flag 0" << std::endl;
@@ -43,6 +41,9 @@ cityModel::cityModel(std::string propsFile, int argc, char** argv, boost::mpi::c
   std::string SEConfPath = "data/" + mapSEConfName;
   //std::cout << "SES map name : " << SEConfPath << std::endl;
   socioEconomicsMap.readMap(SEPath,SEConfPath);
+  std::vector<int> collisionsMapDimensions = socioEconomicsMap.getDimensions();
+  collisionsMap.setSize(collisionsMapDimensions.at(0), collisionsMapDimensions.at(1));
+  //collisionsMap.printMap();
   //socioEconomicsMap.printMap();
 
   std::vector<string> locationOptions;
@@ -136,32 +137,21 @@ void cityModel::init() // initialise the model with agents
   }
 }
 
-void cityModel::assessOtherProcesses()
+void cityModel::initSchedule(repast::ScheduleRunner& runner)
 {
-  int rank = repast::RepastProcess::instance()->rank();
-  int worldSize= repast::RepastProcess::instance()->worldSize(); // get number of processes
-  repast::AgentRequest req(rank);
-  float totalSumTSM = 0;
-  for(int i = 0; i < worldSize; i++)
-  {
-    float processSumTSM = 0;            // For each process
-    float processAverageTSM = 0;
-    if(i != rank)
-    {                                           // ... except this one
-      std::vector<modelAgent*> agents;
-      context.selectAgents(context.size(), agents);                 // Choose 5 local agents randomly
-      for(size_t j = 0; j < agents.size(); j++)
-      {
-        processSumTSM += agents.at(j)-> getRouteTravelSafetyMetric();
-        bigFuckOffListOfAgentPaths.add(agents.at(j)->getAgentPathInfo());
-        // get agent path information here
-      }
-      float processAverageTSM = processSumTSM / (float)(agents.size()-1);
-     //add all path informaiton to a modelwide structure
-    }
-    totalAveragesSumTSM += processAverageTSM;
-  }
-  float totalAveragesTSM = totalAveragesSumTSM/worldSize;
+  runner.scheduleEvent(0, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::initAgents)));
+  //runner.scheduleEvent(1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::agentsDecide))); // let agents decide based on current information
+  runner.scheduleEvent(1.3, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::assessAllProcessAgents)));// collect data of those who cycled
+  runner.scheduleEvent(1.4, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::simulateColisions)));//  simulate collisions
+  runner.scheduleEvent(1.5, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::temporalEvents)));// any temporalEvents
+  runner.scheduleEvent(1.6, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::updateAgents)));//re-update local agent data
+
+  // Data collection
+  runner.scheduleEvent(1.1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(agentDecisions, &repast::DataSet::record)));
+  runner.scheduleEvent(1.2, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(agentDecisions, &repast::DataSet::write)));
+  runner.scheduleEndEvent(repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(agentDecisions, &repast::DataSet::write)));
+
+  runner.scheduleStop(stopAt);
 }
 
 void cityModel::initAgents() // this allows agents to do their own initialiseations here
@@ -174,12 +164,7 @@ void cityModel::initAgents() // this allows agents to do their own initialiseati
   }
 }
 
-void cityModel::doSomething()
-{
-  std::cout << "Hello" << std::endl;
-}
-
-void cityModel::executeAgents() // this gets random order of all agents in context and runs them
+void cityModel::agentsDecide() // this gets random order of all agents in context and runs them
 {
   std::vector<modelAgent*> agents; // make a container for agents
   context.selectAgents(agentCount, agents); // get random ordered selection of agents and add them to container
@@ -187,28 +172,6 @@ void cityModel::executeAgents() // this gets random order of all agents in conte
   {
     (agents.at(iterator))->makeDecision(); // for each agent, execute its primary task;
   }
-}
-
-void cityModel::initSchedule(repast::ScheduleRunner& runner)
-{
-  //runner.scheduleEvent(1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::doSomething)));
-  runner.scheduleEvent(0, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::initAgents)));
-  //runner.scheduleEvent(0.5, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::temporalEvents)));
-  runner.scheduleEvent(1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::executeAgents)));
-  //runner.scheduleEndEvent(repast::Schedule::FunctorPtr(new repast::MethodFunctor<RepastHPCDemoModel> (this, &RepastHPCDemoModel::recordResults)));
-
-  // Data collection
-  runner.scheduleEvent(1.1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(agentDecisions, &repast::DataSet::record)));
-  runner.scheduleEvent(1.2, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(agentDecisions, &repast::DataSet::write)));
-  runner.scheduleEndEvent(repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(agentDecisions, &repast::DataSet::write)));
-
-  runner.scheduleStop(stopAt);
-}
-
-
-void cityModel::dataCollection()
-{
-
 }
 
 void cityModel::temporalEvents() // to be executed with every tick, manages temporal events;
@@ -229,6 +192,74 @@ void cityModel::temporalEvents() // to be executed with every tick, manages temp
   modelTemp = monthTemps.at(monthNumber).temperature;
 }
 
+void cityModel::assessAllProcessAgents()
+{
+  int rank = repast::RepastProcess::instance()->rank();
+  int worldSize= repast::RepastProcess::instance()->worldSize(); // get number of processes
+  repast::AgentRequest req(rank);
+  float totalSumTSM = 0;
+  float totalAveragesSumTSM = 0;
+  for(int i = 0; i < worldSize; i++)
+  {
+    float processSumTSM = 0;            // For each process
+    std::vector<modelAgent*> agents;
+    context.selectAgents(context.size(), agents);
+    for(size_t j = 0; j < agents.size(); j++)
+    {
+      processSumTSM += agents.at(j)-> getTSM();
+      struct exportAgentPathInfoStruct agentPath = agents.at(j)->getAgentPathInfo();
+      for(int iterator = 0; iterator < agentPath.pathX.size(); iterator++)
+      {
+        int x = agentPath.pathX.at(iterator);
+        int y = agentPath.pathY.at(iterator);
+        int mode = agentPath.travelMode;
+        collisionsMap.setElement(x,y,collisionsMap.getElement(x,y)+1+(5*(1-mode))); // ie add 1 for cyclists and 5 for drivers
+      }
+    }
+    float processAverageTSM = processSumTSM / (float)(agents.size()-1);
+    totalAveragesSumTSM += processAverageTSM;
+  }
+  totalAveragesTSM = totalAveragesSumTSM/worldSize;
+}
+
+void cityModel::simulateColisions()
+{
+  std::vector<modelAgent*> agents; // make a container for agents
+  context.selectAgents(agentCount, agents); // get random ordered selection of agents and add them to container
+  for(int iterator = 0; iterator < agents.size(); iterator++)// iterate through all agents
+  {
+    struct exportAgentPathInfoStruct AgentPathInfo = (agents.at(iterator))->getAgentPathInfo(); // for each agent, execute its init task;
+
+    for(int a = 0; a < AgentPathInfo.pathX.size(); a++)
+    {
+      int x = AgentPathInfo.pathX.at(a);
+      int y = AgentPathInfo.pathY.at(a);
+      int cellBusyness = collisionsMap.getElement(x,y);
+      double cellcrashThreshold = (double)cellBusyness*0.0001; // multiply by a constant to set proportional crash likelyhood based on cell busyness, ie per bike crossing, chance of crash increases by 0.01%
+      double randomDouble = repast::Random::instance()->nextDouble();
+      if(randomDouble < cellcrashThreshold)
+      {
+        (agents.at(iterator))->setPreviousColision(true);
+      }
+      else
+      {
+        (agents.at(iterator))->setPreviousColision(false);
+      }
+    }
+  }
+}
+
+void cityModel::updateAgents()
+{
+  std::vector<modelAgent*> agents; // make a container for agents
+  context.selectAgents(agentCount, agents); // get random ordered selection of agents and add them to container
+  for(int iterator = 0; iterator < agents.size(); iterator++)// iterate through all agents
+  {
+    (agents.at(iterator))->setCurrentTemp(modelTemp); // for each agent, set the global model temp
+    (agents.at(iterator))->setTSM(totalAveragesTSM); // for each agent, set the global travelSafetyMetric value
+  }
+}
+
 int cityModel::string2int(std::string input)
 {
   int value = 0;
@@ -247,7 +278,6 @@ int cityModel::string2int(std::string input)
   }
   return value;
 }
-
 
 float cityModel::string2float(std::string input)
 {

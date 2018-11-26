@@ -35,8 +35,9 @@
 		repast::SharedContext<modelAgent> context; // a context (an area) to store all the agents in
 		propertiesMap cityElevationMap;
 		propertiesMap socioEconomicsMap;
-		std::vector<std::vector <int>> commonWork;
-		std::vector<std::vector <int>> commonLiving;
+		propertiesMap collisionsMap;
+		std::vector<std::vector<int>> commonWork;
+		std::vector<std::vector<int>> commonLiving;
 		int string2int(std::string input);
 		struct timeStruct time;
 		std::vector<struct monthStruct> monthTemps;
@@ -44,7 +45,8 @@
 		int weekOffset;
 		float string2float(std::string input);
 		repast::SVDataSet* agentDecisions;
-		std::vector<struct exportAgentPathInfoStruct> bigFuckOffListOfAgentPaths;
+		float totalAveragesTSM;
+		void simulateColisions();
 
 		//repast::SVDataSet* agentSafetyPerceptions;
 		//repast::Random randomObject;
@@ -55,11 +57,10 @@
 		void init();
 		void initSchedule(repast::ScheduleRunner& runner);
 		void initAgents();
+		void agentsDecide();
 		void temporalEvents();
-		void executeAgents();
-		void doSomething();
-		void dataCollection();
-		void assessOtherProcesses();
+		void assessAllProcessAgents();
+		void updateAgents();
 	};
 
 #endif

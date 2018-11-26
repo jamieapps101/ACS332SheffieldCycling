@@ -9,10 +9,24 @@ propertiesMap::propertiesMap()
 
 }
 
-
 propertiesMap::~propertiesMap()
 {
 
+}
+
+void propertiesMap::setSize(int x, int y)
+{
+  std::vector<std::vector<int>> temp;
+  std::vector<int> line;
+  for(int a = 0; a < x; a++)
+  {
+    line.push_back(0);
+  }
+  for(int a = 0; a < y; a++)
+  {
+    temp.push_back(line);
+  }
+  mapElementsMatrix = temp;
 }
 
 void propertiesMap::readMap(std::string inputFileName,std::string keyFileName)
@@ -153,6 +167,11 @@ int propertiesMap::string2int(std::string input)
 int propertiesMap::getElement(int x, int y)
 {
   return mapElementsMatrix.at(y).at(x);
+}
+
+int propertiesMap::setElement(int x, int y, int val)
+{
+
 }
 
 std::vector<int> propertiesMap::getDimensions()

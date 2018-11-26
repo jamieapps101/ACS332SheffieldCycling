@@ -1,6 +1,7 @@
 #ifndef AGENT_HEADER
   #define AGENT_HEADER
   #define CYCLEMODE 1
+  #define DRIVEMODE 0
 
   #include "repast_hpc/AgentId.h"
   #include "repast_hpc/SharedContext.h"
@@ -22,9 +23,10 @@
 
   struct exportAgentPathInfoStruct
   {
-    std::vector<int> homeLocation;
-    std::vector<int> workLocation;
-    repast::AgentId selfID;
+    std::vector<int> pathX;
+    std::vector<int> pathY;
+    int travelMode;
+    //repast::AgentId selfID;
   };
 
   struct fuzzyLogicStruct
@@ -51,17 +53,20 @@
     float illness;
     std::vector<int> homeLocation;
     std::vector<int> workLocation;
-    float routeTravelSafetyMetric;
+    float travelSafetyMetric;
     float distanceToWork;
     float currentTemp;
-    //fl::Engine* buildEngine();
+    struct exportAgentPathInfoStruct internalAgentPathInfo;
+    bool previousCollision;
     struct fuzzyLogicStruct fuzzyEngine;
     struct fuzzyLogicStruct buildEngine();
+    std::vector<float> ruleWeight;
+    bool setRuleWeightsCheck;
 
   public:
     modelAgent(repast::AgentId id);
     ~modelAgent();
-    void didICrash();
+    void didICrash(propertiesMap internalCollisionsMap);
     void makeDecision();
     struct pathInfoStruct assessPath();
     void init(propertiesMap SESinput);
@@ -72,9 +77,11 @@
     virtual const repast::AgentId & getId() const {      return selfID;    }
 
     // insert getters and setters for variables here
+    void setRuleWeights(std::vector<float> input);
     void setCurrentTravelMode(int *input);
     void setFitness(float input);
     void setIllness(float input);
+    void setTSM(float input);
     void setHomeLocation(std::vector<int> input);
     void setWorkLocation(std::vector<int> input);
     void setCurrentTemp(float input);
@@ -86,8 +93,10 @@
     void getWorkLocation(std::vector<int> *output);
     float block2Distance(int input);
     void setEngine(fl::Engine* inputEngine);
-    float getRouteTravelSafetyMetric();
-    struct exportAgentPathInfoStruct getAgentPathInfo()
+    float getTSM();
+    //void setTSM(float input);
+    struct exportAgentPathInfoStruct getAgentPathInfo();
+    void setPreviousColision(bool input);
     // insert actions/functions here
 
   };
