@@ -2,7 +2,7 @@
 include ./env
 # How about some variables?
 
-Processes = 10
+Processes = 1
 
 
 # Right, now for some recipes.PHONY
@@ -11,8 +11,11 @@ all: bin/executable
 
 .PHONY : count
 count:
-	cloc --exclude-dir=fuzzylite,output --exclude-list-file=makefile *
+	@cloc --exclude-dir=fuzzylite,output --exclude-list-file=makefile *
 
+.PHONY : clearData
+clearData:
+	rm output/*
 
 .PHONY : build
 build: # This is where all the crazy linking occurs, see other makefile for ref

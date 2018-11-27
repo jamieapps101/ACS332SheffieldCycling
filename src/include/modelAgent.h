@@ -78,7 +78,7 @@
 
     // insert getters and setters for variables here
     void setRuleWeights(std::vector<float> input);
-    void setCurrentTravelMode(int *input);
+    void setCurrentTravelMode(int input);
     void setFitness(float input);
     void setIllness(float input);
     void setTSM(float input);

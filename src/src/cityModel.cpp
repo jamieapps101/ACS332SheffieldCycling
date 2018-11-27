@@ -46,6 +46,8 @@ cityModel::cityModel(std::string propsFile, int argc, char** argv, boost::mpi::c
   //collisionsMap.printMap();
   //socioEconomicsMap.printMap();
 
+  initCyclistProportion = string2float(props->getProperty("initial.Cyclists.Proportion"));
+
   std::vector<string> locationOptions;
   locationOptions.push_back("Work");
   locationOptions.push_back("Living");
@@ -140,7 +142,7 @@ void cityModel::init() // initialise the model with agents
 void cityModel::initSchedule(repast::ScheduleRunner& runner)
 {
   runner.scheduleEvent(0, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::initAgents)));
-  //runner.scheduleEvent(1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::agentsDecide))); // let agents decide based on current information
+  runner.scheduleEvent(1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::agentsDecide))); // let agents decide based on current information
   runner.scheduleEvent(1.3, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::assessAllProcessAgents)));// collect data of those who cycled
   runner.scheduleEvent(1.4, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::simulateColisions)));//  simulate collisions
   runner.scheduleEvent(1.5, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::temporalEvents)));// any temporalEvents
@@ -161,6 +163,19 @@ void cityModel::initAgents() // this allows agents to do their own initialiseati
   for(int iterator = 0; iterator < agents.size(); iterator++)// iterate through all agents
   {
     (agents.at(iterator))->init(socioEconomicsMap); // for each agent, execute its init task;
+    float randomDouble = repast::Random::instance()->nextDouble();
+    //std::cout << "RandomDouble:" << randomDouble << std::endl;
+    //std::cout << "init prop" << initCyclistProportion << std::endl << std::endl;
+    if(randomDouble < initCyclistProportion)
+    {
+      //std::cout << "Cycle" << std::endl;
+      (agents.at(iterator))->setCurrentTravelMode(CYCLEMODE);
+    }
+    else
+    {
+      //std::cout << "or don't" << std::endl;
+      (agents.at(iterator))->setCurrentTravelMode(DRIVEMODE);
+    }
   }
 }
 
@@ -284,6 +299,7 @@ float cityModel::string2float(std::string input)
   int prePointValue = 0;
   int postPointValue = 0;
   bool postPoint = false;
+  int divideBy = 0;
   for(int a = 0; a < input.size(); a++)
   {
     char character = input.at(a);
@@ -296,6 +312,7 @@ float cityModel::string2float(std::string input)
       }
       else
       {
+        divideBy++;
         postPointValue *= 10;
         postPointValue += (int)character - 48;
       }
@@ -314,7 +331,7 @@ float cityModel::string2float(std::string input)
   }
   float value = (float)prePointValue;
   float decimal = (float)postPointValue;
-  while(decimal > 1)
+  for(int a = 0; a < divideBy; a++)
   {
     decimal = decimal/10;
   }

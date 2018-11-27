@@ -47,6 +47,7 @@
 		repast::SVDataSet* agentDecisions;
 		float totalAveragesTSM;
 		void simulateColisions();
+		float initCyclistProportion;
 
 		//repast::SVDataSet* agentSafetyPerceptions;
 		//repast::Random randomObject;

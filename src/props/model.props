@@ -1,7 +1,7 @@
 #Properties file
-stop.at = 2000
-count.of.agents = 500
-random.seed = 71948829
+stop.at = 5
+count.of.agents = 1
+random.seed = 71949
 map.data.name = mapData.txt
 elevations.map.name = elevations.txt
 map.scale = 1.38
@@ -30,3 +30,4 @@ temp.dec = 6.8
 output.name = output.txt
 SE.map.conf.name = SESConf.txt
 SE.map.name = SES.txt
+initial.Cyclists.Proportion = 0.02
