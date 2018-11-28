@@ -62,6 +62,8 @@
     struct fuzzyLogicStruct buildEngine();
     std::vector<float> ruleWeight;
     bool setRuleWeightsCheck;
+    struct pathInfoStruct pathInfo;
+    struct pathInfoStruct assessPathInternalData;
 
   public:
     modelAgent(repast::AgentId id);

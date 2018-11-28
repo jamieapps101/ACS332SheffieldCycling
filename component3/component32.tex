@@ -1,0 +1,25 @@
+\documentclass{article}
+\usepackage{natbib}
+
+\begin{document}
+
+\title{BibTeX in action}
+\author{Martin J. Osborne}
+\date{2008-1-13}
+
+\maketitle
+
+\section{Introduction}
+This document illustrates the use of BibTeX\@.  You may want to refer to
+\cite{ahu61} or \cite{ab94} or \cite{m85}.  Or you may want to cite a
+specific page in a reference, like this: see \citet[p.~199]{m85}.  Or
+perhaps you want to cite more than one paper by Maskin: \cite{m85}.
+Or you want to make a parenthetical reference to one or more articles, in
+which case the \verb+\citealt+ in the \texttt{te.bst} bibliography style
+omits the parentheses around the year (\citealt{ahu61}).
+
+%\bibliographystyle{te}
+
+\bibliography{references}
+
+\end{document}

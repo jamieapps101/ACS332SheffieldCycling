@@ -1,7 +1,7 @@
 #Properties file
-stop.at = 5
+stop.at = 2048
 count.of.agents = 1
-random.seed = 71949
+random.seed = 7988849
 map.data.name = mapData.txt
 elevations.map.name = elevations.txt
 map.scale = 1.38
@@ -15,8 +15,10 @@ common.Living.2 = 9,4
 common.Living.3 = 20,14
 common.Living.4 = 10,12
 common.Living.5 = 13,12
-temp.jan = 6.5 # represents monthly averages from 1981-2010
-temp.feb = 6.7 # taken from https://www.metoffice.gov.uk/climate/uk/summaries/actualmonthly
+# represents monthly averages from 1981-2010
+# taken from https://www.metoffice.gov.uk/climate/uk/summaries/actualmonthly
+temp.jan = 6.5
+temp.feb = 6.7
 temp.mar = 9.9
 temp.apr = 11.5
 temp.may = 14.8

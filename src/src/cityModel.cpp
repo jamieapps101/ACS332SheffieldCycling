@@ -26,7 +26,7 @@ cityModel::cityModel(std::string propsFile, int argc, char** argv, boost::mpi::c
   initializeRandom(*props, comm);
   //std::cout << "Flag 2" << std::endl;
   stopAt = repast::strToInt(props->getProperty("stop.at"));
-  std::cout << "Stopping at: " << stopAt << std::endl;
+  //std::cout << "Stopping at: " << stopAt << std::endl;
   agentCount = repast::strToInt(props->getProperty("count.of.agents"));
 
   std::string mapElevationsName = props->getProperty("elevations.map.name");
@@ -90,11 +90,12 @@ cityModel::cityModel(std::string propsFile, int argc, char** argv, boost::mpi::c
     temp.name = monthNames[a];
     std::string currentParameterName = "temp." + monthNames[a];
     temp.temperature = string2float(props->getProperty(currentParameterName));
+    //std::cout << "Month " << a << ": " << temp.name << "/" << temp.temperature << std::endl;
     monthTemps.push_back(temp);
   }
 
-  std::string outputFileName = props->getProperty("output.name");
-  std::string outputPath = "./output/" + outputFileName;
+  //std::string outputFileName =
+  std::string outputPath = "./output/" + props->getProperty("output.name");
 
   // Data collection
   // Create the data set builder
@@ -120,7 +121,7 @@ void cityModel::init() // initialise the model with agents
   int rank = repast::RepastProcess::instance()->rank(); // get rank of this process' instance of the model
   std::cout << "Starting process " << rank << " with " << agentCount << " agents." << std::endl;
   repast::TriangleGenerator gen = repast::Random::instance()->createTriangleGenerator(0,0.5,1);
-  //buildEngine();
+
   for(int i = 0; i < agentCount; i++) // a counter to count upto the desired number of agents
   {
     repast::AgentId id(i, rank, 0); // create an agentID object, with its ID, starting process number and type (left as 0)
@@ -142,11 +143,11 @@ void cityModel::init() // initialise the model with agents
 void cityModel::initSchedule(repast::ScheduleRunner& runner)
 {
   runner.scheduleEvent(0, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::initAgents)));
-  runner.scheduleEvent(1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::agentsDecide))); // let agents decide based on current information
-  runner.scheduleEvent(1.3, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::assessAllProcessAgents)));// collect data of those who cycled
-  runner.scheduleEvent(1.4, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::simulateColisions)));//  simulate collisions
-  runner.scheduleEvent(1.5, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::temporalEvents)));// any temporalEvents
-  runner.scheduleEvent(1.6, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::updateAgents)));//re-update local agent data
+  //runner.scheduleEvent(0.8, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::temporalEvents)));// any temporalEvents
+  //runner.scheduleEvent(0.9, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::updateAgents)));//re-update local agent data
+  //runner.scheduleEvent(1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::agentsDecide))); // let agents decide based on current information
+  //runner.scheduleEvent(1.3, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::assessAllProcessAgents)));// collect data of those who cycled
+  //runner.scheduleEvent(1.4, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::simulateColisions)));//  simulate collisions
 
   // Data collection
   runner.scheduleEvent(1.1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(agentDecisions, &repast::DataSet::record)));
@@ -163,9 +164,10 @@ void cityModel::initAgents() // this allows agents to do their own initialiseati
   for(int iterator = 0; iterator < agents.size(); iterator++)// iterate through all agents
   {
     (agents.at(iterator))->init(socioEconomicsMap); // for each agent, execute its init task;
-    float randomDouble = repast::Random::instance()->nextDouble();
+    //float randomDouble = repast::Random::instance()->nextDouble();
     //std::cout << "RandomDouble:" << randomDouble << std::endl;
     //std::cout << "init prop" << initCyclistProportion << std::endl << std::endl;
+    /*
     if(randomDouble < initCyclistProportion)
     {
       //std::cout << "Cycle" << std::endl;
@@ -176,6 +178,7 @@ void cityModel::initAgents() // this allows agents to do their own initialiseati
       //std::cout << "or don't" << std::endl;
       (agents.at(iterator))->setCurrentTravelMode(DRIVEMODE);
     }
+    */
   }
 }
 
@@ -204,7 +207,9 @@ void cityModel::temporalEvents() // to be executed with every tick, manages temp
     weekOffset--;
   }
   int monthNumber = (int)(time.week+weekOffset)/4;
+  //std::cout << "month Number " << monthNumber << std::endl;
   modelTemp = monthTemps.at(monthNumber).temperature;
+  //std::cout << "model temp" << modelTemp << std::endl;
 }
 
 void cityModel::assessAllProcessAgents()

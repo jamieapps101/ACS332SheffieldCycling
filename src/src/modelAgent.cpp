@@ -1,7 +1,7 @@
 #include "modelAgent.h"
 #include "fl/Headers.h"
 #include <vector>
-
+#include "repast_hpc/RepastProcess.h"
 
 modelAgent::modelAgent(repast::AgentId id)
 {
@@ -46,10 +46,18 @@ void modelAgent::didICrash(propertiesMap internalCollisionsMap)
 
 void modelAgent::makeDecision()
 {
-  struct pathInfoStruct pathInfo = assessPath();
+  std::cout << "hello" << std::endl;
+  if(repast::RepastProcess::instance()->rank() == 0)
+  {
+    repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
+    std::cout << "I'm on tick " << runner.currentTick() << std::endl;
+  }
+  /*
   internalAgentPathInfo.pathX = pathInfo.pathX;
   internalAgentPathInfo.pathY = pathInfo.pathY;
   internalAgentPathInfo.travelMode = currentTravelMode;
+  */
+  /*
   std::cout << "homeX " << homeLocation.at(0) << std::endl;
   std::cout << "homeY " << homeLocation.at(1) << std::endl;
   std::cout << "workX " << workLocation.at(0) << std::endl;
@@ -58,19 +66,26 @@ void modelAgent::makeDecision()
   std::cout << "Delta height " << pathInfo.deltaHeight << std::endl;
   std::cout << "socioEconSum " << pathInfo.socioEconSum << std::endl;
   std::cout << std::endl;
+  */
+  /*
   fuzzyEngine.fitnessInput->setValue(fitness);
-  std::cout << "Fitness " << fitness << std::endl;
+  //std::cout << "Fitness " << fitness << std::endl;
   fuzzyEngine.pathLengthInput->setValue(pathInfo.distance);
-  std::cout << "PathLength " << pathInfo.distance << std::endl;
+  //std::cout << "PathLength " << pathInfo.distance << std::endl;
   fuzzyEngine.SESPathInput->setValue(pathInfo.socioEconSum);
-  std::cout << "socioEconSum " << pathInfo.socioEconSum << std::endl;
+  //std::cout << "socioEconSum " << pathInfo.socioEconSum << std::endl;
   fuzzyEngine.deltaHeightInput->setValue(pathInfo.deltaHeight);
-  std::cout << "deltaHeight " << pathInfo.deltaHeight << std::endl;
+  //std::cout << "deltaHeight " << pathInfo.deltaHeight << std::endl;
   fuzzyEngine.temperatureInput->setValue(currentTemp);
-  std::cout << "Temp " << currentTemp << std::endl;
-  std::cout << "Abt to infer" << std::endl;
+  //std::cout << "Temp " << currentTemp << std::endl;
+  fuzzyEngine.safetyMetricInput->setValue(travelSafetyMetric);
+  //std::cout << "safetyMetricInput " << travelSafetyMetric << std::endl;
+  //std::cout << "Abt to infer" << std::endl;
   fuzzyEngine.engine->process();
   float output = fuzzyEngine.commuteChoiceOutput->getValue();
+  */
+  //std::cout << "Fuzzy out is " << output << std::endl;
+  /*
   if(output > 0.5)
   {
     currentTravelMode = CYCLEMODE;
@@ -79,27 +94,23 @@ void modelAgent::makeDecision()
   {
     currentTravelMode = DRIVEMODE;
   }
-  std::cout << "Fuzzy out is " << output << std::endl;
+  */
+
 }
 
 struct pathInfoStruct modelAgent::assessPath()
 {
-  struct pathInfoStruct internalData;
-  //std::cout << "flag 1" << std::endl;
-  // look at path cell quality for partial safety metric
-  // look at either common cell paths or vector intesection to see if paths collide with other agents
-  //https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
+  //assessPathInternalData;
   std::vector<int> travel;
   travel.push_back(workLocation.at(0) - homeLocation.at(0));
   travel.push_back(workLocation.at(1) - homeLocation.at(1));
-  //std::cout << "flag 2" << std::endl;
   if(std::abs(travel.at(0)) > std::abs(travel.at(1)))
   {
     float gradient = (float)travel.at(1)/travel.at(0);
     for(int a = 0; a < std::abs(travel.at(0)); a++)
     {
-      internalData.pathX.push_back(a + homeLocation.at(0));
-      internalData.pathY.push_back((float)a*gradient + homeLocation.at(1));
+      assessPathInternalData.pathX.push_back(a + homeLocation.at(0));
+      assessPathInternalData.pathY.push_back((float)a*gradient + homeLocation.at(1));
     }
   }
   else
@@ -107,35 +118,31 @@ struct pathInfoStruct modelAgent::assessPath()
     float gradient = (float)travel.at(0)/travel.at(1);
     for(int a = 0; a < std::abs(travel.at(1)); a++)
     {
-      internalData.pathX.push_back((float)a*gradient + homeLocation.at(0));
-      internalData.pathY.push_back(a + homeLocation.at(1));
+      assessPathInternalData.pathX.push_back((float)a*gradient + homeLocation.at(0));
+      assessPathInternalData.pathY.push_back(a + homeLocation.at(1));
     }
   }
-  //std::cout << "flag 3, and pathX is size " << internalData.pathX.size() << std::endl;
-  internalData.socioEconSum = 0;
-  for(int a = 0; a < internalData.pathX.size(); a++)
+  assessPathInternalData.socioEconSum = 0;
+  //std::cout << "Path Size " << assessPathInternalData.pathX.size() << std::endl;
+  for(int a = 0; a < assessPathInternalData.pathX.size(); a++)
   {
-    //std::cout << "I want element at X" << internalData.pathX.at(a) << " and Y" << internalData.pathY.at(a) <<std::endl;
-  //  SESLocal.printMap();
-    internalData.socioEconSum += SESLocal.getElement(internalData.pathX.at(a),internalData.pathY.at(a));
-    //int z = SESLocal.getElement(0,internalData.pathY.at(a));
-    //std::cout << "z = " << internalData.socioEconSum << std::endl;
+    //std::cout << "My rank is " << selfID.currentRank() << " and I'm up to " << a << std::endl;
+    assessPathInternalData.socioEconSum += SESLocal.getElement(assessPathInternalData.pathX.at(a),assessPathInternalData.pathY.at(a));
   }
-  //std::cout << "flag 4" << std::endl;
-  internalData.distance = (int)pow((pow((homeLocation.at(0) - workLocation.at(0)),2) + pow((homeLocation.at(1) - workLocation.at(1)),2)),0.5);
-  internalData.deltaHeight = std::abs(homeLocation.at(2) - workLocation.at(2));
-  return internalData;
+  /*
+  assessPathInternalData.distance = (int)pow((pow((homeLocation.at(0) - workLocation.at(0)),2) + pow((homeLocation.at(1) - workLocation.at(1)),2)),0.5);
+  assessPathInternalData.deltaHeight = std::abs(homeLocation.at(2) - workLocation.at(2));
+  travel.clear();
+  */
+    //std::cout << "My rank is " << selfID.currentRank() << " and I'm returning" << std::endl;
+  //return assessPathInternalData;
 }
 
 void modelAgent::init(propertiesMap SESinput)
 {
-    // need to pick home/work locations here. need to export common work/living locations for this
-    std::cout<<"My fitness is: " << fitness << std::endl;
     SESLocal = SESinput;
-    std::cout<< "and my map got here ok" << std::endl;
-    fuzzyEngine = buildEngine();/////////////////////////////////////////////////////////////////////////////////////////<<< don't forget!!!
-
-    //SESLocal.printMap();
+    fuzzyEngine = buildEngine();
+    pathInfo = assessPath();
 }
 void modelAgent::doSomething()
 {
@@ -207,6 +214,8 @@ struct fuzzyLogicStruct modelAgent::buildEngine()
   struct fuzzyLogicStruct internal;
 
   internal.engine = new fl::Engine;
+  internal.engine->setName("toCycleorNotTocycle");
+  internal.engine->setDescription("");
 
   internal.fitnessInput = new fl::InputVariable;
   {
@@ -226,7 +235,7 @@ struct fuzzyLogicStruct modelAgent::buildEngine()
     internal.pathLengthInput->setName("pathLength");
     internal.pathLengthInput->setDescription("");
     internal.pathLengthInput->setEnabled(true);
-    internal.pathLengthInput->setRange(0.000, 5.000); // up to 5k segmentation, see first report
+    internal.pathLengthInput->setRange(0.000, 45.000); // up to 5k segmentation, see first report
     internal.pathLengthInput->setLockValueInRange(true);
     internal.pathLengthInput->setValue(5);
     internal.pathLengthInput->addTerm(new fl::Ramp("short", 5.000, 0.000));
@@ -292,7 +301,7 @@ struct fuzzyLogicStruct modelAgent::buildEngine()
     internal.commuteChoiceOutput->setLockValueInRange(true);
     internal.commuteChoiceOutput->setAggregation(new fl::Maximum);
     internal.commuteChoiceOutput->setDefuzzifier(new fl::WeightedAverage());
-    internal.commuteChoiceOutput->setDefaultValue(0.123456);
+    //internal.commuteChoiceOutput->setDefaultValue(0.123456);
     internal.commuteChoiceOutput->setLockPreviousValue(false);
     internal.commuteChoiceOutput->addTerm(new fl::Ramp("cycle", 1.000, 0.000));
     internal.commuteChoiceOutput->addTerm(new fl::Ramp("notCycle", 0.000, 1.000));
@@ -312,6 +321,9 @@ struct fuzzyLogicStruct modelAgent::buildEngine()
 
     ////////////////////////////////////////////// RULES
     std::vector<std::string> rules;
+    rules.push_back("if fitness is fit and temperature is warm then commuteChoice is cycle");
+    rules.push_back("if fitness is unfit and temperature is cool then commuteChoice is notCycle");
+    /*
     rules.push_back("if fitness is fit and pathLength is short and SESPath is nice and deltaHeight is small and temperature is warm and safetyMetric is safe then commuteChoice is cycle");
     rules.push_back("if fitness is fit and pathLength is long and SESPath is nice and deltaHeight is small and temperature is warm and safetyMetric is safe then commuteChoice is cycle");
     rules.push_back("if fitness is fit and pathLength is short and SESPath is nice and deltaHeight is large and temperature is warm and safetyMetric is safe then commuteChoice is cycle");
@@ -320,7 +332,7 @@ struct fuzzyLogicStruct modelAgent::buildEngine()
     rules.push_back("if fitness is fit and pathLength is long and SESPath is notNice and deltaHeight is small and temperature is warm and safetyMetric is unsafe then commuteChoice is notCycle");
     rules.push_back("if fitness is unfit and pathLength is short and SESPath is nice and deltaHeight is small and temperature is warm and safetyMetric is safe then commuteChoice is notCycle");
     rules.push_back("if fitness is unfit and pathLength is long and SESPath is notNice and deltaHeight is large and temperature is cool and safetyMetric is unsafe then commuteChoice is notCycle");
-
+    */
     /////////////////////////////////////////// WEIGHTS
     std::vector<float> internalRuleWeight;
     internalRuleWeight.push_back(1);
@@ -340,12 +352,12 @@ struct fuzzyLogicStruct modelAgent::buildEngine()
     {
       std::string argsString = rules.at(iterator);
       //argstring += " with " + std::to_string(internalRuleWeight.at(iterator));
-      std::cout << "argsString " << argsString << std::endl;
+      //std::cout << "argsString " << argsString << std::endl;
       internal.mamdani->addRule(fl::Rule::parse(argsString, internal.engine));
     }
     /*
     */
-    std::cout << "I got here!" << std::endl;
+    //std::cout << "I got here!" << std::endl;
     /*
     internal.mamdani->addRule(fl::Rule::parse("if fitness is fit and pathLength is short then commuteChoice is cycle", internal.engine));
     std::cout << "I also got here!" << std::endl;
@@ -363,12 +375,12 @@ struct fuzzyLogicStruct modelAgent::buildEngine()
   if (not internal.engine->isReady(&status))
   {
       //return null;
-      std::cout << "Well Fuck, you might be fucked" << std::endl;
-      std::cout << "Status:" << status << std::endl;
+      //std::cout << "Bad Fuzzy Engine" << std::endl;
+      //std::cout << "Status:" << status << std::endl;
   }
   else
   {
-    std::cout << "You might be ok!" << std::endl;
+    //std::cout << "Fuzzy Engine Ok!" << std::endl;
   }
   return internal;
   /*
