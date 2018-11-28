@@ -1,11 +1,11 @@
 #*******************************
 #
-# Repast HPC Tutorial 
+# Repast HPC Tutorial
 # ENVIRONMENT DEFINITIONS
 #
 #*******************************
 
-#MPICXX=/home/jamie/sfw/MPICH/bin//mpicxx -std=c++11 
+#MPICXX=/home/jamie/sfw/MPICH/bin//mpicxx -std=c++11
 MPICXX=mpicxx -std=c++11
 
 BOOST_INCLUDE=-I"/home/jamie/sfw/Boost/Boost_1.61/include"
@@ -19,4 +19,3 @@ REPAST_HPC_LIB=-lrepast_hpc-2.2.0
 FUZZYLITE_INCLUDE=-I/home/jamie/Documents/ACS332SheffieldCycling/src/fuzzylite/
 FUZZYLITE_LIB_DIR=-L/home/jamie/Documents/ACS332SheffieldCycling/src/fuzzylite/release/bin
 FUZZYLITE_LIBS=-lfuzzylite-static
-

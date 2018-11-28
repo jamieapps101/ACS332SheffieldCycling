@@ -2,7 +2,7 @@
 include ./env
 # How about some variables?
 
-Processes = 10
+Processes = 1
 
 
 # Right, now for some recipes.PHONY
@@ -23,7 +23,7 @@ build: # This is where all the crazy linking occurs, see other makefile for ref
 
 .PHONY : init
 init:
-	- source ~/.profile
+	-source ~/.profile
 
 bin/executable: objects/modelAgent.o objects/cityModel.o objects/main.o objects/propertiesMap.o objects/DataSource_AgentDecisions.o
 	@echo Building Executable

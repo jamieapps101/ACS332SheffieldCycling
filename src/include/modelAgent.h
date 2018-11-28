@@ -18,7 +18,7 @@
     int distance;
     std::vector<int> pathX;
     std::vector<int> pathY;
-    int socioEconSum;
+    long socioEconSum;
   };
 
   struct exportAgentPathInfoStruct

@@ -166,6 +166,8 @@ int propertiesMap::string2int(std::string input)
 
 int propertiesMap::getElement(int x, int y)
 {
+  std::cout << "X " << x << " y " << y << std::endl;
+  std::cout << "Map Size " << mapElementsMatrix.size() << " at 0 " << mapElementsMatrix.at(0).size() << std::endl;
   return mapElementsMatrix.at(y).at(x);
 }
 

@@ -13,7 +13,4 @@
     DataSource_AgentDecisions(repast::SharedContext<modelAgent>* c);
     int getData();
   };
-
-
-
 #endif

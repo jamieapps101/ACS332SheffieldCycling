@@ -124,10 +124,11 @@ struct pathInfoStruct modelAgent::assessPath()
   }
   assessPathInternalData.socioEconSum = 0;
   //std::cout << "Path Size " << assessPathInternalData.pathX.size() << std::endl;
+  std::cout << "My rank is " << selfID.currentRank() << " Size " << assessPathInternalData.pathX.size() << std::endl;
   for(int a = 0; a < assessPathInternalData.pathX.size(); a++)
   {
-    //std::cout << "My rank is " << selfID.currentRank() << " and I'm up to " << a << std::endl;
     assessPathInternalData.socioEconSum += SESLocal.getElement(assessPathInternalData.pathX.at(a),assessPathInternalData.pathY.at(a));
+    std::cout << "My rank is " << selfID.currentRank() << " X " << assessPathInternalData.pathX.at(a) << " Y " << assessPathInternalData.pathY.at(a) << std::endl;
   }
   /*
   assessPathInternalData.distance = (int)pow((pow((homeLocation.at(0) - workLocation.at(0)),2) + pow((homeLocation.at(1) - workLocation.at(1)),2)),0.5);
@@ -135,14 +136,14 @@ struct pathInfoStruct modelAgent::assessPath()
   travel.clear();
   */
     //std::cout << "My rank is " << selfID.currentRank() << " and I'm returning" << std::endl;
-  //return assessPathInternalData;
+  return assessPathInternalData;
 }
 
 void modelAgent::init(propertiesMap SESinput)
 {
     SESLocal = SESinput;
     fuzzyEngine = buildEngine();
-    pathInfo = assessPath();
+    pathInfo = assessPath(); // mem error here
 }
 void modelAgent::doSomething()
 {

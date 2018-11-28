@@ -1,7 +1,7 @@
 #Properties file
-stop.at = 2048
-count.of.agents = 1
-random.seed = 7988849
+stop.at = 100
+count.of.agents = 10000
+#random.seed = 7988849
 map.data.name = mapData.txt
 elevations.map.name = elevations.txt
 map.scale = 1.38
