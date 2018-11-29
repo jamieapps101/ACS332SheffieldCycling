@@ -1,14 +1,14 @@
 #Properties file
-stop.at = 100
-count.of.agents = 10000
-#random.seed = 7988849
+stop.at = 2000
+count.of.agents = 100
+random.seed = 798809
 map.data.name = mapData.txt
 elevations.map.name = elevations.txt
 map.scale = 1.38
 common.Work.1 = 6,5
 common.Work.2 = 2,7
-common.Work.3 = 16,10
-common.Work.4 = 16,11
+common.Work.3 = 15,10
+common.Work.4 = 15,11
 common.Work.5 = 13,15
 common.Living.1 = 16,15
 common.Living.2 = 9,4

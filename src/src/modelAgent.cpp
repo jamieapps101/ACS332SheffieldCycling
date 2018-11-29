@@ -2,6 +2,7 @@
 #include "fl/Headers.h"
 #include <vector>
 #include "repast_hpc/RepastProcess.h"
+#include "math.h"
 
 modelAgent::modelAgent(repast::AgentId id)
 {
@@ -46,18 +47,18 @@ void modelAgent::didICrash(propertiesMap internalCollisionsMap)
 
 void modelAgent::makeDecision()
 {
-  std::cout << "hello" << std::endl;
+  //std::cout << "hello" << std::endl;
   if(repast::RepastProcess::instance()->rank() == 0)
   {
     repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
     std::cout << "I'm on tick " << runner.currentTick() << std::endl;
   }
-  /*
+
   internalAgentPathInfo.pathX = pathInfo.pathX;
   internalAgentPathInfo.pathY = pathInfo.pathY;
   internalAgentPathInfo.travelMode = currentTravelMode;
-  */
-  /*
+
+/*
   std::cout << "homeX " << homeLocation.at(0) << std::endl;
   std::cout << "homeY " << homeLocation.at(1) << std::endl;
   std::cout << "workX " << workLocation.at(0) << std::endl;
@@ -66,8 +67,8 @@ void modelAgent::makeDecision()
   std::cout << "Delta height " << pathInfo.deltaHeight << std::endl;
   std::cout << "socioEconSum " << pathInfo.socioEconSum << std::endl;
   std::cout << std::endl;
-  */
-  /*
+
+*/
   fuzzyEngine.fitnessInput->setValue(fitness);
   //std::cout << "Fitness " << fitness << std::endl;
   fuzzyEngine.pathLengthInput->setValue(pathInfo.distance);
@@ -83,9 +84,9 @@ void modelAgent::makeDecision()
   //std::cout << "Abt to infer" << std::endl;
   fuzzyEngine.engine->process();
   float output = fuzzyEngine.commuteChoiceOutput->getValue();
-  */
+
   //std::cout << "Fuzzy out is " << output << std::endl;
-  /*
+
   if(output > 0.5)
   {
     currentTravelMode = CYCLEMODE;
@@ -94,7 +95,7 @@ void modelAgent::makeDecision()
   {
     currentTravelMode = DRIVEMODE;
   }
-  */
+
 
 }
 
@@ -102,39 +103,70 @@ struct pathInfoStruct modelAgent::assessPath()
 {
   //assessPathInternalData;
   std::vector<int> travel;
-  travel.push_back(workLocation.at(0) - homeLocation.at(0));
+  //travel.push_back(workLocation.at(0) - homeLocation.at(0));////////?????////////////////////////////////////////////////////////////////////////// Look at this shit, I am travelling wrong direction
+  //travel.push_back(workLocation.at(1) - homeLocation.at(1));
+  travel.push_back(workLocation.at(0) - homeLocation.at(0));////////?????////////////////////////////////////////////////////////////////////////// Look at this shit, I am travelling wrong direction
   travel.push_back(workLocation.at(1) - homeLocation.at(1));
+
+  //std::cout << "My home location is (" << homeLocation.at(0) << "," << homeLocation.at(1) << ")" << std::endl;
+  //std::cout << "My work location is (" << workLocation.at(0) << "," << workLocation.at(1) << ")" << std::endl;
+  //std::cout << "My travel is (" << travel.at(0) <<  "," << travel.at(1) << ")" << std::endl;
   if(std::abs(travel.at(0)) > std::abs(travel.at(1)))
   {
+    //std::cout << "My x travel is larger, making " << travel.at(0) << "steps "<< std::endl;
     float gradient = (float)travel.at(1)/travel.at(0);
+    int fudge = 1;   /////////////////////////////////////////////////////////////////////////////////////This is bc in doing the abs of the number to get a value to count up to, I loose direction, so this preserves it
+    if(travel.at(0) < 0)
+    {
+      fudge = -1;
+    }
     for(int a = 0; a < std::abs(travel.at(0)); a++)
     {
-      assessPathInternalData.pathX.push_back(a + homeLocation.at(0));
-      assessPathInternalData.pathY.push_back((float)a*gradient + homeLocation.at(1));
+      assessPathInternalData.pathX.push_back((int)floor((a*fudge + homeLocation.at(0))));
+      assessPathInternalData.pathY.push_back((int)floor(((float)a*gradient*fudge + homeLocation.at(1))));
     }
   }
   else
   {
+    //std::cout << "My y travel is larger, making " << travel.at(1) << "steps "<< std::endl;
     float gradient = (float)travel.at(0)/travel.at(1);
-    for(int a = 0; a < std::abs(travel.at(1)); a++)
+    int fudge = 1;
+    if(travel.at(0) < 0)
     {
-      assessPathInternalData.pathX.push_back((float)a*gradient + homeLocation.at(0));
-      assessPathInternalData.pathY.push_back(a + homeLocation.at(1));
+      fudge = -1;
+    }
+    for(int a = 0; a < std::abs(travel.at(1)); a++) //// bc I take an abs here, when multiplying by the gradient later, I loose direction
+    {
+      assessPathInternalData.pathX.push_back((int)floor(((float)a*gradient*fudge + homeLocation.at(0))));
+      assessPathInternalData.pathY.push_back((int)floor((a*fudge + homeLocation.at(1))));
+      //std::cout << "Adding (" << assessPathInternalData.pathX.back() << "," << assessPathInternalData.pathY.back() << ")" << std::endl;
     }
   }
   assessPathInternalData.socioEconSum = 0;
   //std::cout << "Path Size " << assessPathInternalData.pathX.size() << std::endl;
-  std::cout << "My rank is " << selfID.currentRank() << " Size " << assessPathInternalData.pathX.size() << std::endl;
+  //std::cout << "My rank is " << selfID.currentRank() << " Size " << assessPathInternalData.pathX.size() << std::endl;
+  std::vector<int> size = SESLocal.getDimensions();
+  //std::cout << "Map X " << size.at(0) << " and Y " << size.at(1) << std::endl;
   for(int a = 0; a < assessPathInternalData.pathX.size(); a++)
   {
+    //std::cout << "My X " << assessPathInternalData.pathX.at(a) << " and Y " << assessPathInternalData.pathY.at(a) << std::endl;
+    if(assessPathInternalData.pathX.at(a) > size.at(0))
+    {
+      //std::cout << "My x is larger, oh dear" << '\n';
+    }
+    if(assessPathInternalData.pathY.at(a) > size.at(1))
+    {
+      //std::cout << "My y is larger, oh dear" << '\n';
+    }
     assessPathInternalData.socioEconSum += SESLocal.getElement(assessPathInternalData.pathX.at(a),assessPathInternalData.pathY.at(a));
-    std::cout << "My rank is " << selfID.currentRank() << " X " << assessPathInternalData.pathX.at(a) << " Y " << assessPathInternalData.pathY.at(a) << std::endl;
   }
-  /*
+
+  //std::cout << std::endl << std::endl;
+
   assessPathInternalData.distance = (int)pow((pow((homeLocation.at(0) - workLocation.at(0)),2) + pow((homeLocation.at(1) - workLocation.at(1)),2)),0.5);
   assessPathInternalData.deltaHeight = std::abs(homeLocation.at(2) - workLocation.at(2));
   travel.clear();
-  */
+
     //std::cout << "My rank is " << selfID.currentRank() << " and I'm returning" << std::endl;
   return assessPathInternalData;
 }

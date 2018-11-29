@@ -143,11 +143,11 @@ void cityModel::init() // initialise the model with agents
 void cityModel::initSchedule(repast::ScheduleRunner& runner)
 {
   runner.scheduleEvent(0, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::initAgents)));
-  //runner.scheduleEvent(0.8, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::temporalEvents)));// any temporalEvents
-  //runner.scheduleEvent(0.9, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::updateAgents)));//re-update local agent data
-  //runner.scheduleEvent(1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::agentsDecide))); // let agents decide based on current information
-  //runner.scheduleEvent(1.3, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::assessAllProcessAgents)));// collect data of those who cycled
-  //runner.scheduleEvent(1.4, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::simulateColisions)));//  simulate collisions
+  runner.scheduleEvent(0.8, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::temporalEvents)));// any temporalEvents
+  runner.scheduleEvent(0.9, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::updateAgents)));//re-update local agent data
+  runner.scheduleEvent(1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::agentsDecide))); // let agents decide based on current information
+  runner.scheduleEvent(1.3, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::assessAllProcessAgents)));// collect data of those who cycled
+  runner.scheduleEvent(1.4, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::simulateColisions)));//  simulate collisions
 
   // Data collection
   runner.scheduleEvent(1.1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(agentDecisions, &repast::DataSet::record)));
