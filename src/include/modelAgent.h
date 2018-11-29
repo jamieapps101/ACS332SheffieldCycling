@@ -64,6 +64,7 @@
     bool setRuleWeightsCheck;
     struct pathInfoStruct pathInfo;
     struct pathInfoStruct assessPathInternalData;
+    void createRuleBase(std::vector<std::string> * rules,std::vector<std::string> rulesToBeUsed, fl::Engine engine);
 
   public:
     modelAgent(repast::AgentId id);

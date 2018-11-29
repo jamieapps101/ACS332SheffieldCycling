@@ -95,7 +95,7 @@ cityModel::cityModel(std::string propsFile, int argc, char** argv, boost::mpi::c
   }
 
   //std::string outputFileName =
-  std::string outputPath = "./output/" + props->getProperty("output.name");
+  std::string outputPath = props->getProperty("output.path") + props->getProperty("output.name");
 
   // Data collection
   // Create the data set builder
@@ -119,7 +119,7 @@ cityModel::~cityModel()
 void cityModel::init() // initialise the model with agents
 {
   int rank = repast::RepastProcess::instance()->rank(); // get rank of this process' instance of the model
-  std::cout << "Starting process " << rank << " with " << agentCount << " agents." << std::endl;
+  //std::cout << "Starting process " << rank << " with " << agentCount << " agents." << std::endl;
   repast::TriangleGenerator gen = repast::Random::instance()->createTriangleGenerator(0,0.5,1);
 
   for(int i = 0; i < agentCount; i++) // a counter to count upto the desired number of agents
@@ -164,10 +164,10 @@ void cityModel::initAgents() // this allows agents to do their own initialiseati
   for(int iterator = 0; iterator < agents.size(); iterator++)// iterate through all agents
   {
     (agents.at(iterator))->init(socioEconomicsMap); // for each agent, execute its init task;
-    //float randomDouble = repast::Random::instance()->nextDouble();
+    float randomDouble = repast::Random::instance()->nextDouble();
     //std::cout << "RandomDouble:" << randomDouble << std::endl;
     //std::cout << "init prop" << initCyclistProportion << std::endl << std::endl;
-    /*
+
     if(randomDouble < initCyclistProportion)
     {
       //std::cout << "Cycle" << std::endl;
@@ -178,12 +178,16 @@ void cityModel::initAgents() // this allows agents to do their own initialiseati
       //std::cout << "or don't" << std::endl;
       (agents.at(iterator))->setCurrentTravelMode(DRIVEMODE);
     }
-    */
   }
 }
 
 void cityModel::agentsDecide() // this gets random order of all agents in context and runs them
 {
+  if(repast::RepastProcess::instance()->rank() == 0)
+  {
+    repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
+    std::cout << "I'm on tick " << runner.currentTick() << std::endl;
+  }
   std::vector<modelAgent*> agents; // make a container for agents
   context.selectAgents(agentCount, agents); // get random ordered selection of agents and add them to container
   for(int iterator = 0; iterator < agents.size(); iterator++)// iterate through all agents

@@ -48,11 +48,6 @@ void modelAgent::didICrash(propertiesMap internalCollisionsMap)
 void modelAgent::makeDecision()
 {
   //std::cout << "hello" << std::endl;
-  if(repast::RepastProcess::instance()->rank() == 0)
-  {
-    repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
-    std::cout << "I'm on tick " << runner.currentTick() << std::endl;
-  }
 
   internalAgentPathInfo.pathX = pathInfo.pathX;
   internalAgentPathInfo.pathY = pathInfo.pathY;
@@ -101,10 +96,7 @@ void modelAgent::makeDecision()
 
 struct pathInfoStruct modelAgent::assessPath()
 {
-  //assessPathInternalData;
   std::vector<int> travel;
-  //travel.push_back(workLocation.at(0) - homeLocation.at(0));////////?????////////////////////////////////////////////////////////////////////////// Look at this shit, I am travelling wrong direction
-  //travel.push_back(workLocation.at(1) - homeLocation.at(1));
   travel.push_back(workLocation.at(0) - homeLocation.at(0));////////?????////////////////////////////////////////////////////////////////////////// Look at this shit, I am travelling wrong direction
   travel.push_back(workLocation.at(1) - homeLocation.at(1));
 
@@ -366,6 +358,15 @@ struct fuzzyLogicStruct modelAgent::buildEngine()
     rules.push_back("if fitness is unfit and pathLength is short and SESPath is nice and deltaHeight is small and temperature is warm and safetyMetric is safe then commuteChoice is notCycle");
     rules.push_back("if fitness is unfit and pathLength is long and SESPath is notNice and deltaHeight is large and temperature is cool and safetyMetric is unsafe then commuteChoice is notCycle");
     */
+
+    std::vector<std::string> rulesToBeUsed;
+    rulesToBeUsed.push_back("fitness");
+    rulesToBeUsed.push_back("pathLength");
+    rulesToBeUsed.push_back("SESPath");
+    rulesToBeUsed.push_back("deltaHeight");
+    rulesToBeUsed.push_back("temperature");
+    rulesToBeUsed.push_back("safetyMetric");
+
     /////////////////////////////////////////// WEIGHTS
     std::vector<float> internalRuleWeight;
     internalRuleWeight.push_back(1);
@@ -435,4 +436,44 @@ struct exportAgentPathInfoStruct modelAgent::getAgentPathInfo()
 void modelAgent::setTSM(float input)
 {
   travelSafetyMetric = input;
+}
+
+
+void modelAgent::createRuleBase(std::vector<std::string> * rules,std::vector<std::string> IVsToBeUsed, fl::Engine engine)
+{
+  std::string variableName = IVsToBeUsed.back(); // get the current input variable
+  IVsToBeUsed.pop_back; // remove the input variable from the list of input variables to be processed
+  fl::InputVariable temp = engine.getInputVariable(variableName) // get the object version of the input variable
+  std::vector<fl::Term*> tempTerms = temp.terms() // get the terms for the current input variable
+  if(tempTerms.size() != 0)
+  {
+    if(rules->size() != 0) // do we have any rules already
+    { // yes, then we need to multiply up
+      for(int b = 0; b < tempTerms.size()-1; b++) // for every term, we need another copy of the rules, t\king into account the initial copy
+      {
+        int currentSize = rules->size();
+        for(int a = 0; a < currentSize; a++)
+        {
+          rules->push_back(rules->at(a)); // make a copy of every rule
+        }
+      }
+      // now we have all the copies of the initial rules we need
+      for(int currentTerm = 0; currentTerm < tempTerms.size(); currentTerm++)
+      {
+        for(int b = 0; b < rules->size()/tempTerms.size(); b++)
+        {
+          int ruleIterator = currentTerm*(rules->size()/tempTerms.size());
+          rules->at(ruleIterator) = rules->at(ruleIterator) + " and " + temp.getName() + " is " +
+        }
+      }
+    }
+    else
+    { // no, then we need to add some
+
+    }
+  }
+  else
+  {
+    // do nothing, nothing can be done
+  }
 }

@@ -25,9 +25,26 @@ build: # This is where all the crazy linking occurs, see other makefile for ref
 init:
 	-source ~/.profile
 
-bin/executable: objects/modelAgent.o objects/cityModel.o objects/main.o objects/propertiesMap.o objects/DataSource_AgentDecisions.o
+.PHONY : optimiser
+optimiser: bin/optimiser
+
+
+bin/optimiser: src/optimisationMain.cpp
+	@echo Building optimiser
+	g++ -o ./bin/optimiser ./src/optimisationMain.cpp
+
+
+.PHONY : runOptimiser
+runOptimiser:  #*.props
+	@echo Running Simulation
+	@./bin/optimiser
+
+MODEL_OBJECTS = objects/modelAgent.o objects/cityModel.o objects/modelMain.o objects/propertiesMap.o objects/DataSource_AgentDecisions.o
+MODEL_OBJECTS_2_LINK = ./objects/modelAgent.o ./objects/cityModel.o ./objects/modelMain.o ./objects/propertiesMap.o ./objects/DataSource_AgentDecisions.o
+
+bin/executable: $(MODEL_OBJECTS)
 	@echo Building Executable
-	@$(MPICXX) $(BOOST_LIB_DIR) $(REPAST_HPC_LIB_DIR) $(FUZZYLITE_LIB_DIR) -o ./bin/executable ./objects/*.o $(REPAST_HPC_LIB) $(BOOST_LIBS) $(FUZZYLITE_LIBS) -w
+	@$(MPICXX) $(BOOST_LIB_DIR) $(REPAST_HPC_LIB_DIR) $(FUZZYLITE_LIB_DIR) -o ./bin/executable $(MODEL_OBJECTS_2_LINK) $(REPAST_HPC_LIB) $(BOOST_LIBS) $(FUZZYLITE_LIBS) -w
 
 objects/propertiesMap.o: src/propertiesMap.cpp
 	@echo Creating propertiesMap.o
@@ -50,14 +67,15 @@ objects/DataSource_AgentDecisions.o: src/DataSource_AgentDecisions.cpp
 #		@$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) $(FUZZYLITELIBS) -I ./include/ -c ./src/fuzzylite/src/Engine.cpp -o ./objects/engine.o  -w
 
 
-objects/main.o: src/main.cpp
+objects/modelMain.o: src/modelMain.cpp
 	@echo Creating main.o
-	@$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) $(FUZZYLITE_INCLUDE) -I ./include/ -c ./src/main.cpp -o ./objects/main.o  -w
+	@$(MPICXX) $(REPAST_HPC_DEFINES) $(BOOST_INCLUDE) $(REPAST_HPC_INCLUDE) $(FUZZYLITE_INCLUDE) -I ./include/ -c ./src/modelMain.cpp -o ./objects/modelMain.o  -w
 
 .PHONY : run
 run:  #*.props
 	@echo Running Simulation
 	@mpirun -n $(Processes) ./bin/executable ./props/config.props ./props/model.props
+
 
 .PHONY : clean
 clean:

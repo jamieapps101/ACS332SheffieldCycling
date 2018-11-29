@@ -8,10 +8,6 @@
 
 int main(int argc, char** argv)
 {
-
-  clock_t ticks;
-  ticks = clock();
-  printf("Hello World, I'm starting\n"); // Say hi to the world!!!!
   std::string configFile = argv[1]; // The name of the configuration file is config.props (Arg 1)
   std::string propsFile = argv[2]; // The name of the properties file is model.props (Arg 2)
   boost::mpi::environment env(argc, argv); // initialise the MPI invironment
@@ -23,14 +19,8 @@ int main(int argc, char** argv)
   model->initSchedule(runner); // pass areference to the schedule object to the model instance
 
   runner.run(); // instruct the sheduler to run the model
-
   delete model; // after running it, release the memory from the pointer to the model
-
   repast::RepastProcess::instance()->done(); // instruct the repase process that its done with
-  ticks = clock() - ticks;
-  double timeTaken = (double)ticks / CLOCKS_PER_SEC;
-  std::cout << "That took " << timeTaken << " seconds or " << ticks << " clock ticks"<< std::endl;
-  //printf("Ok,I'm done here\n");
 }
 
 /*
