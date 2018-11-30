@@ -18,40 +18,39 @@
 #include "repast_hpc/SVDataSetBuilder.h"
 #include "repast_hpc/initialize_random.h"
 
+// Policy results
+  // policy 1
+    // increase perceived road safety
+    // increase journey distance
+  // policy 2
+    // increase road saftey byaccounting less for cars influence
+  // policy 3
+    // set negative hill perception to 0
+    // bias result to car due to cost
+
+// needed variables: roadsafety, journey distance, delta height
+
 cityModel::cityModel(std::string propsFile, int argc, char** argv, boost::mpi::communicator* comm): context(comm)
 {
-  //std::cout << "Flag 0" << std::endl;
+  //std::cout << "making citymodel object" << std::endl;
   props = new repast::Properties(propsFile, argc, argv, comm); // import properties from model.props
-  //std::cout << "Flag 1" << std::endl;
   initializeRandom(*props, comm);
-  //std::cout << "Flag 2" << std::endl;
   stopAt = repast::strToInt(props->getProperty("stop.at"));
-  //std::cout << "Stopping at: " << stopAt << std::endl;
   agentCount = repast::strToInt(props->getProperty("count.of.agents"));
-
   std::string mapElevationsName = props->getProperty("elevations.map.name");
   std::string elevationsPath = "data/" + mapElevationsName;
-  //std::cout << "Elevations map name : " << elevationsPath << std::endl;
   cityElevationMap.readMap(elevationsPath);
-  //cityElevationMap.printMap();
-
   std::string mapSEName = props->getProperty("SE.map.name");
   std::string mapSEConfName = props->getProperty("SE.map.conf.name");
   std::string SEPath = "data/" + mapSEName;
   std::string SEConfPath = "data/" + mapSEConfName;
-  //std::cout << "SES map name : " << SEConfPath << std::endl;
   socioEconomicsMap.readMap(SEPath,SEConfPath);
   std::vector<int> collisionsMapDimensions = socioEconomicsMap.getDimensions();
   collisionsMap.setSize(collisionsMapDimensions.at(0), collisionsMapDimensions.at(1));
-  //collisionsMap.printMap();
-  //socioEconomicsMap.printMap();
-
   initCyclistProportion = string2float(props->getProperty("initial.Cyclists.Proportion"));
-
   std::vector<string> locationOptions;
   locationOptions.push_back("Work");
   locationOptions.push_back("Living");
-
   for(int a = 0; a < 2; a++)
   {
     for (int b = 0; b < 5; b++)
@@ -64,20 +63,14 @@ cityModel::cityModel(std::string propsFile, int argc, char** argv, boost::mpi::c
       coordinates.push_back(string2int(firstVal));
       std::string secondVal = inputString.substr(1 + commaLocation, inputString.size());
       coordinates.push_back(string2int(secondVal));
-      //std::cout << "coordinates are: " << coordinates.at(0) << ", " << coordinates.at(1) << std::endl;
       coordinates.push_back(cityElevationMap.getElement(coordinates.at(0),coordinates.at(1)));
-      //std::cout << "Z coordinate was " << coordinates.at(2) << std::endl;
       if(a==0) // aka work
       {
         commonWork.push_back(coordinates);
-        //std::cout << "WorkX: " << coordinates.at(0) << std::endl;
-        //std::cout << "WorkY: " << coordinates.at(1) << std::endl;
       }
       else // aka living
       {
         commonLiving.push_back(coordinates);
-        //std::cout << "livingX: " << coordinates.at(0) << std::endl;
-        //std::cout << "livingY: " << coordinates.at(1) << std::endl;
       }
     }
   }
@@ -90,13 +83,9 @@ cityModel::cityModel(std::string propsFile, int argc, char** argv, boost::mpi::c
     temp.name = monthNames[a];
     std::string currentParameterName = "temp." + monthNames[a];
     temp.temperature = string2float(props->getProperty(currentParameterName));
-    //std::cout << "Month " << a << ": " << temp.name << "/" << temp.temperature << std::endl;
     monthTemps.push_back(temp);
   }
-
-  //std::string outputFileName =
   std::string outputPath = props->getProperty("output.path") + props->getProperty("output.name");
-
   // Data collection
   // Create the data set builder
   std::string fileOutputName(outputPath);
@@ -108,6 +97,16 @@ cityModel::cityModel(std::string propsFile, int argc, char** argv, boost::mpi::c
 
   // Use the builder to create the data set
   agentDecisions = builder.createDataSet();
+
+  policy1Mode = repast::strToInt(props->getProperty("policy1.enable"));
+  policy2Mode = repast::strToInt(props->getProperty("policy2.enable"));
+  policy3Mode = repast::strToInt(props->getProperty("policy3.enable"));
+  /*
+  for(int a = 0; a < 5; a++)
+  {
+    globalInternalRuleWeight.push_back(string2float(props->getProperty("weight" + std::to_string(a+1))));
+  }
+  */
 }
 
 cityModel::~cityModel()
@@ -136,6 +135,7 @@ void cityModel::init() // initialise the model with agents
     chosenLocation = commonLiving.at(workLocationChoice);
     agent->setWorkLocation(chosenLocation);
     agent->setFitness(gen.next());
+    agent->setPolicies(policy1Mode,policy2Mode,policy3Mode);
     context.addAgent(agent); // add this agent to the process context
   }
 }
@@ -161,6 +161,7 @@ void cityModel::initAgents() // this allows agents to do their own initialiseati
 {
   std::vector<modelAgent*> agents; // make a container for agents
   context.selectAgents(agentCount, agents); // get random ordered selection of agents and add them to container
+  //std::cout << "init-int agents" << std::endl;
   for(int iterator = 0; iterator < agents.size(); iterator++)// iterate through all agents
   {
     (agents.at(iterator))->init(socioEconomicsMap); // for each agent, execute its init task;
@@ -178,6 +179,7 @@ void cityModel::initAgents() // this allows agents to do their own initialiseati
       //std::cout << "or don't" << std::endl;
       (agents.at(iterator))->setCurrentTravelMode(DRIVEMODE);
     }
+    //(agents.at(iterator))->setInternalRuleWeight(globalInternalRuleWeight);
   }
 }
 
@@ -186,7 +188,7 @@ void cityModel::agentsDecide() // this gets random order of all agents in contex
   if(repast::RepastProcess::instance()->rank() == 0)
   {
     repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
-    std::cout << "I'm on tick " << runner.currentTick() << std::endl;
+    //std::cout << "I'm on tick " << runner.currentTick() << std::endl;
   }
   std::vector<modelAgent*> agents; // make a container for agents
   context.selectAgents(agentCount, agents); // get random ordered selection of agents and add them to container
@@ -237,7 +239,7 @@ void cityModel::assessAllProcessAgents()
         int x = agentPath.pathX.at(iterator);
         int y = agentPath.pathY.at(iterator);
         int mode = agentPath.travelMode;
-        collisionsMap.setElement(x,y,collisionsMap.getElement(x,y)+1+(5*(1-mode))); // ie add 1 for cyclists and 5 for drivers
+        collisionsMap.setElement(x,y,collisionsMap.getElement(x,y)+1+(5*(1-mode)*(1-policy2Mode))); // ie add 1 for cyclists and 5 for drivers
       }
     }
     float processAverageTSM = processSumTSM / (float)(agents.size()-1);

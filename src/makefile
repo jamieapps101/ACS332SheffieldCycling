@@ -2,7 +2,7 @@
 include ./env
 # How about some variables?
 
-Processes = 4
+Processes = 1
 
 
 # Right, now for some recipes.PHONY

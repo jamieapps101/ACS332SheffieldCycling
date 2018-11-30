@@ -65,6 +65,10 @@
     struct pathInfoStruct pathInfo;
     struct pathInfoStruct assessPathInternalData;
     void createRuleBase(std::vector<std::string> * rules,std::vector<std::string> rulesToBeUsed, fl::Engine engine);
+    int policy1Mode;
+    int policy2Mode;
+    int policy3Mode;
+    std::vector<float> internalRuleWeight;
 
   public:
     modelAgent(repast::AgentId id);
@@ -97,6 +101,8 @@
     float block2Distance(int input);
     void setEngine(fl::Engine* inputEngine);
     float getTSM();
+    void setPolicies(int mode1Input, int mode2Input, int mode3Input);
+    void setInternalRuleWeight(std::vector<float> ruleWeight);
     //void setTSM(float input);
     struct exportAgentPathInfoStruct getAgentPathInfo();
     void setPreviousColision(bool input);

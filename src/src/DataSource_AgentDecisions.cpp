@@ -7,16 +7,16 @@ DataSource_AgentDecisions::DataSource_AgentDecisions(repast::SharedContext<model
 
 int DataSource_AgentDecisions::getData()
 {
-  int sum = 0;
+  int TravelModeSum = 0;
   repast::SharedContext<modelAgent>::const_local_iterator iter    = context->localBegin();
   repast::SharedContext<modelAgent>::const_local_iterator iterEnd = context->localEnd();
   while(iter != iterEnd) {
     int decision = (*iter)->getCurrentTravelMode();
     if(decision == CYCLEMODE)
     {
-      sum++;
+      TravelModeSum++;
     }
     iter++;
   }
-  return sum;
+  return TravelModeSum;
 }

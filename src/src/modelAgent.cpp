@@ -3,6 +3,7 @@
 #include <vector>
 #include "repast_hpc/RepastProcess.h"
 #include "math.h"
+#include "definesList.h"
 
 modelAgent::modelAgent(repast::AgentId id)
 {
@@ -28,6 +29,7 @@ void modelAgent::setPreviousColision(bool input)
   previousCollision = input;
 }
 
+/*
 void modelAgent::didICrash(propertiesMap internalCollisionsMap)
 {
   for(int a = 0; a < internalAgentPathInfo.pathX.size(); a++)
@@ -44,11 +46,19 @@ void modelAgent::didICrash(propertiesMap internalCollisionsMap)
     }
   }
 }
+*/
 
 void modelAgent::makeDecision()
 {
   //std::cout << "hello" << std::endl;
-
+  if(previousCollision == true)
+  {
+    travelSafetyMetric *= TSMCOLLISIONINCREASE;
+  }
+  else
+  {
+    travelSafetyMetric *= TSMNOCOLLISIONDECREASE;
+  }
   internalAgentPathInfo.pathX = pathInfo.pathX;
   internalAgentPathInfo.pathY = pathInfo.pathY;
   internalAgentPathInfo.travelMode = currentTravelMode;
@@ -63,32 +73,41 @@ void modelAgent::makeDecision()
   std::cout << "socioEconSum " << pathInfo.socioEconSum << std::endl;
   std::cout << std::endl;
 
+  int policy1Mode;
+  int policy2Mode;
+  int policy3Mode;
+
 */
   fuzzyEngine.fitnessInput->setValue(fitness);
-  //std::cout << "Fitness " << fitness << std::endl;
-  fuzzyEngine.pathLengthInput->setValue(pathInfo.distance);
-  //std::cout << "PathLength " << pathInfo.distance << std::endl;
+  fuzzyEngine.pathLengthInput->setValue(pathInfo.distance * (1 + policy1Mode*POLICYONEDISTINCREASE));
   fuzzyEngine.SESPathInput->setValue(pathInfo.socioEconSum);
-  //std::cout << "socioEconSum " << pathInfo.socioEconSum << std::endl;
-  fuzzyEngine.deltaHeightInput->setValue(pathInfo.deltaHeight);
-  //std::cout << "deltaHeight " << pathInfo.deltaHeight << std::endl;
+  fuzzyEngine.deltaHeightInput->setValue(pathInfo.deltaHeight * (1 - policy3Mode));
   fuzzyEngine.temperatureInput->setValue(currentTemp);
-  //std::cout << "Temp " << currentTemp << std::endl;
-  fuzzyEngine.safetyMetricInput->setValue(travelSafetyMetric);
-  //std::cout << "safetyMetricInput " << travelSafetyMetric << std::endl;
-  //std::cout << "Abt to infer" << std::endl;
+  fuzzyEngine.safetyMetricInput->setValue(travelSafetyMetric * (1 + policy1Mode*POLICYONETSMINCREASE));
   fuzzyEngine.engine->process();
   float output = fuzzyEngine.commuteChoiceOutput->getValue();
+  /*
+  std::cout << "Fitness " << fitness << std::endl;
+  std::cout << "PathLength " << pathInfo.distance << std::endl;
+  std::cout << "socioEconSum " << pathInfo.socioEconSum << std::endl;
+  std::cout << "deltaHeight " << pathInfo.deltaHeight << std::endl;
+  std::cout << "Temp " << currentTemp << std::endl;
+  std::cout << "safetyMetricInput " << travelSafetyMetric << std::endl;
+  std::cout << "Abt to infer" << std::endl;
+  std::cout << "Engine has " << fuzzyEngine.engine->numberOfInputVariables() << " input variables" << std::endl;
+  std::cout << "Engine has " << fuzzyEngine.engine->numberOfOutputVariables() << " output variables" << std::endl;
+  fl::RuleBlock * extractedRuleBlock = fuzzyEngine.engine->getRuleBlock(0);
+  std::cout << "RuleBlock has " << extractedRuleBlock->numberOfRules() << " rules" << std::endl;
 
-  //std::cout << "Fuzzy out is " << output << std::endl;
-
-  if(output > 0.5)
+  std::cout << "Fuzzy out is " << output << std::endl;
+*/
+  if(output > CYCLECHOICETHRESHOLD)
   {
-    currentTravelMode = CYCLEMODE;
+    //currentTravelMode = CYCLEMODE;
   }
   else
   {
-    currentTravelMode = DRIVEMODE;
+    //currentTravelMode = DRIVEMODE;
   }
 
 
@@ -179,7 +198,7 @@ void modelAgent::doSomething()
 }
 float modelAgent::block2Distance(int input)
 {
-  return (float)input*1.37; // as calculated from lat/long distance measurements from original map
+  return (float)input*MAPBLOCK2DIST; // as calculated from lat/long distance measurements from original map
 }
 // insert getters and setters for variables here
 void modelAgent::setCurrentTravelMode(int input)
@@ -236,6 +255,7 @@ float modelAgent::getTSM()
 }
 struct fuzzyLogicStruct modelAgent::buildEngine()
 {
+  //std::cout << "building engine" << std::endl;
   struct fuzzyLogicStruct internal;
 
   internal.engine = new fl::Engine;
@@ -345,83 +365,67 @@ struct fuzzyLogicStruct modelAgent::buildEngine()
   }
 
     ////////////////////////////////////////////// RULES
-    std::vector<std::string> rules;
-    rules.push_back("if fitness is fit and temperature is warm then commuteChoice is cycle");
-    rules.push_back("if fitness is unfit and temperature is cool then commuteChoice is notCycle");
-    /*
-    rules.push_back("if fitness is fit and pathLength is short and SESPath is nice and deltaHeight is small and temperature is warm and safetyMetric is safe then commuteChoice is cycle");
-    rules.push_back("if fitness is fit and pathLength is long and SESPath is nice and deltaHeight is small and temperature is warm and safetyMetric is safe then commuteChoice is cycle");
-    rules.push_back("if fitness is fit and pathLength is short and SESPath is nice and deltaHeight is large and temperature is warm and safetyMetric is safe then commuteChoice is cycle");
-    rules.push_back("if fitness is fit and pathLength is short and SESPath is nice and deltaHeight is large and temperature is warm and safetyMetric is safe then commuteChoice is cycle");
-
-    rules.push_back("if fitness is fit and pathLength is long and SESPath is notNice and deltaHeight is small and temperature is warm and safetyMetric is unsafe then commuteChoice is notCycle");
-    rules.push_back("if fitness is unfit and pathLength is short and SESPath is nice and deltaHeight is small and temperature is warm and safetyMetric is safe then commuteChoice is notCycle");
-    rules.push_back("if fitness is unfit and pathLength is long and SESPath is notNice and deltaHeight is large and temperature is cool and safetyMetric is unsafe then commuteChoice is notCycle");
-    */
 
     std::vector<std::string> rulesToBeUsed;
     rulesToBeUsed.push_back("fitness");
     rulesToBeUsed.push_back("pathLength");
-    rulesToBeUsed.push_back("SESPath");
+    //rulesToBeUsed.push_back("SESPath");
     rulesToBeUsed.push_back("deltaHeight");
     rulesToBeUsed.push_back("temperature");
     rulesToBeUsed.push_back("safetyMetric");
 
-    //createRuleBase(&rules,rulesToBeUsed, *(internal.engine));
-/*
-    for(int a = 0; a < rules.size(); a++)
-    {
-      rules.at(a) += " then commuteChoice is " + choice.at(a);
-    }
-*/
+    std::vector<std::string> rules;
+    rules.push_back("if fitness is fit and pathLength is long and deltaHeight is large and temperature is cool and safetyMetric is unsafe then commuteChoice is cycle");
+    rules.push_back("if fitness is fit and pathLength is long and deltaHeight is large and temperature is cool and safetyMetric is unsafe then commuteChoice is notCycle");
+    rules.push_back("if fitness is unfit and pathLength is short and deltaHeight is large and temperature is cool and safetyMetric is unsafe then commuteChoice is cycle");
+    rules.push_back("if fitness is unfit and pathLength is short and deltaHeight is large and temperature is cool and safetyMetric is unsafe then commuteChoice is notCycle");
+    rules.push_back("if fitness is unfit and pathLength is long and deltaHeight is small and temperature is cool and safetyMetric is unsafe then commuteChoice is cycle");
+    rules.push_back("if fitness is unfit and pathLength is long and deltaHeight is small and temperature is cool and safetyMetric is unsafe then commuteChoice is notCycle");
+    rules.push_back("if fitness is unfit and pathLength is long and deltaHeight is large and temperature is warm and safetyMetric is unsafe then commuteChoice is cycle");
+    rules.push_back("if fitness is unfit and pathLength is long and deltaHeight is large and temperature is warm and safetyMetric is unsafe then commuteChoice is notCycle");
+    rules.push_back("if fitness is unfit and pathLength is long and deltaHeight is large and temperature is cool and safetyMetric is safe then commuteChoice is cycle");
+    rules.push_back("if fitness is unfit and pathLength is long and deltaHeight is large and temperature is cool and safetyMetric is safe then commuteChoice is notCycle");
+
     /////////////////////////////////////////// WEIGHTS
-    std::vector<float> internalRuleWeight;
-    internalRuleWeight.push_back(1);
-    internalRuleWeight.push_back(1);
-    internalRuleWeight.push_back(1);
-    internalRuleWeight.push_back(1);
-    internalRuleWeight.push_back(1);
-    internalRuleWeight.push_back(1);
-    internalRuleWeight.push_back(1);
+    std::vector<float> ruleWeight;
+    ruleWeight.push_back(1);
+    ruleWeight.push_back(1);
+    ruleWeight.push_back(1);
+    ruleWeight.push_back(1);
+    ruleWeight.push_back(1);
+    if(internalRuleWeight.size() != 0)
+    {
+      ruleWeight = internalRuleWeight;
+    }
 
     ///////////////////////////////////////// INPUT RULES AND WEIGHTS
     if(setRuleWeightsCheck == true)
     {
-      internalRuleWeight = ruleWeight;
+      ruleWeight = ruleWeight;
     }
+    //std::string argsString;
+    int offSet = 0;
     for(int iterator = 0; iterator < rules.size(); iterator++)
     {
       std::string argsString = rules.at(iterator);
-      //argstring += " with " + std::to_string(internalRuleWeight.at(iterator));
+      if(iterator%2 == 0) // aka is this an even number
+      {
+        argsString += " with " + std::to_string(ruleWeight.at((iterator/2)));
+      }
+      else
+      {
+        argsString += " with " + std::to_string(1 - ruleWeight.at(((iterator-1)/2))); // take inverse weightings of each complimentry rule
+      }
       //std::cout << "argsString " << argsString << std::endl;
       internal.mamdani->addRule(fl::Rule::parse(argsString, internal.engine));
     }
-    /*
-    */
-    //std::cout << "I got here!" << std::endl;
-    /*
-    internal.mamdani->addRule(fl::Rule::parse("if fitness is fit and pathLength is short then commuteChoice is cycle", internal.engine));
-    std::cout << "I also got here!" << std::endl;
-    internal.mamdani->addRule(fl::Rule::parse("if fitness is fit   and pathLength is long  and SESPath is nice    and deltaHeight is small and temperature is warm and safetyMetric is safe   then commuteChoice is cycle", internal.engine));
-    internal.mamdani->addRule(fl::Rule::parse("if fitness is fit   and pathLength is short and SESPath is nice    and deltaHeight is small and temperature is warm and safetyMetric is safe   then commuteChoice is cycle", internal.engine));
-    internal.mamdani->addRule(fl::Rule::parse("if fitness is fit   and pathLength is short and SESPath is nice    and deltaHeight is large and temperature is warm and safetyMetric is safe   then commuteChoice is cycle", internal.engine));
-    internal.mamdani->addRule(fl::Rule::parse("if fitness is fit   and pathLength is long  and SESPath is notNice and deltaHeight is small and temperature is warm and safetyMetric is unsafe then commuteChoice is notCycle", internal.engine));
-    internal.mamdani->addRule(fl::Rule::parse("if fitness is unfit and pathLength is short and SESPath is nice    and deltaHeight is small and temperature is warm and safetyMetric is safe   then commuteChoice is notCycle", internal.engine));
-    internal.mamdani->addRule(fl::Rule::parse("if fitness is unfit and pathLength is long then commuteChoice is notCycle", internal.engine));
-    std::cout << "and here! " << std::endl;
-    */
+
 
   internal.engine->addRuleBlock(internal.mamdani);
   std::string status;
   if (not internal.engine->isReady(&status))
   {
-      //return null;
-      //std::cout << "Bad Fuzzy Engine" << std::endl;
-      //std::cout << "Status:" << status << std::endl;
-  }
-  else
-  {
-    //std::cout << "Fuzzy Engine Ok!" << std::endl;
+    // useful for debugging the engine
   }
   return internal;
   /*
@@ -443,6 +447,13 @@ struct exportAgentPathInfoStruct modelAgent::getAgentPathInfo()
 void modelAgent::setTSM(float input)
 {
   travelSafetyMetric = input;
+}
+
+void modelAgent::setPolicies(int mode1Input, int mode2Input, int mode3Input)
+{
+  policy1Mode = mode1Input;
+  policy2Mode = mode2Input;
+  policy3Mode = mode3Input;
 }
 
 
@@ -491,4 +502,9 @@ void modelAgent::createRuleBase(std::vector<std::string> * rules,std::vector<std
   {
     createRuleBase(rules,IVsToBeUsed,engine); // fucking recursion yeahhhhhh
   }
+}
+
+void modelAgent::setInternalRuleWeight(std::vector<float> ruleWeight)
+{
+  internalRuleWeight = ruleWeight;
 }

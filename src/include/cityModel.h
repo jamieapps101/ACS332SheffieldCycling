@@ -29,6 +29,9 @@
 	class cityModel
 	{
 	private:
+		int policy1Mode;
+		int policy2Mode;
+		int policy3Mode;
 		int stopAt; // a variable to tell the process which tick to stop at
 		int agentCount;
 		repast::Properties* props; // to hold the input model properties
@@ -48,6 +51,7 @@
 		float totalAveragesTSM;
 		void simulateColisions();
 		float initCyclistProportion;
+		std::vector<float> globalInternalRuleWeight;
 
 		//repast::SVDataSet* agentSafetyPerceptions;
 		//repast::Random randomObject;
