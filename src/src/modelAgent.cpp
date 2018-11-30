@@ -367,6 +367,13 @@ struct fuzzyLogicStruct modelAgent::buildEngine()
     rulesToBeUsed.push_back("temperature");
     rulesToBeUsed.push_back("safetyMetric");
 
+    //createRuleBase(&rules,rulesToBeUsed, *(internal.engine));
+/*
+    for(int a = 0; a < rules.size(); a++)
+    {
+      rules.at(a) += " then commuteChoice is " + choice.at(a);
+    }
+*/
     /////////////////////////////////////////// WEIGHTS
     std::vector<float> internalRuleWeight;
     internalRuleWeight.push_back(1);
@@ -442,9 +449,9 @@ void modelAgent::setTSM(float input)
 void modelAgent::createRuleBase(std::vector<std::string> * rules,std::vector<std::string> IVsToBeUsed, fl::Engine engine)
 {
   std::string variableName = IVsToBeUsed.back(); // get the current input variable
-  IVsToBeUsed.pop_back; // remove the input variable from the list of input variables to be processed
-  fl::InputVariable temp = engine.getInputVariable(variableName) // get the object version of the input variable
-  std::vector<fl::Term*> tempTerms = temp.terms() // get the terms for the current input variable
+  IVsToBeUsed.pop_back(); // remove the input variable from the list of input variables to be processed
+  fl::InputVariable *temp = engine.getInputVariable(variableName); // get the object version of the input variable
+  std::vector<fl::Term*> tempTerms = temp->terms(); // get the terms for the current input variable
   if(tempTerms.size() != 0)
   {
     if(rules->size() != 0) // do we have any rules already
@@ -463,17 +470,25 @@ void modelAgent::createRuleBase(std::vector<std::string> * rules,std::vector<std
         for(int b = 0; b < rules->size()/tempTerms.size(); b++)
         {
           int ruleIterator = currentTerm*(rules->size()/tempTerms.size());
-          rules->at(ruleIterator) = rules->at(ruleIterator) + " and " + temp.getName() + " is " +
+          rules->at(ruleIterator) = rules->at(ruleIterator) + " and " + temp->getName() + " is " + tempTerms.at(b)->getName();
         }
       }
     }
     else
     { // no, then we need to add some
-
+      int newRules = tempTerms.size();
+      for(int a = 0; a < newRules; a++)
+      {
+        rules->push_back(temp->getName() + " is " + tempTerms.at(a)->getName());
+      }
     }
   }
   else
   {
-    // do nothing, nothing can be done
+    // do nothing, nothing can be done as variable not recognised
+  }
+  if(IVsToBeUsed.size() != 0)
+  {
+    createRuleBase(rules,IVsToBeUsed,engine); // fucking recursion yeahhhhhh
   }
 }
