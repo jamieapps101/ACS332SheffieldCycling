@@ -64,7 +64,7 @@
     bool setRuleWeightsCheck;
     struct pathInfoStruct pathInfo;
     struct pathInfoStruct assessPathInternalData;
-    void createRuleBase(std::vector<std::string> * rules,std::vector<std::string> rulesToBeUsed, fl::Engine engine);
+    //void createRuleBase(std::vector<std::string> * rules,std::vector<std::string> rulesToBeUsed, fl::Engine engine);
     int policy1Mode;
     int policy2Mode;
     int policy3Mode;
@@ -84,7 +84,7 @@
     virtual const repast::AgentId & getId() const {      return selfID;    }
 
     // insert getters and setters for variables here
-    void setRuleWeights(std::vector<float> input);
+    //void setRuleWeights(std::vector<float> input);
     void setCurrentTravelMode(int input);
     void setFitness(float input);
     void setIllness(float input);
@@ -102,7 +102,7 @@
     void setEngine(fl::Engine* inputEngine);
     float getTSM();
     void setPolicies(int mode1Input, int mode2Input, int mode3Input);
-    void setInternalRuleWeight(std::vector<float> ruleWeight);
+    void setInternalRuleWeight(std::vector<float> input);
     //void setTSM(float input);
     struct exportAgentPathInfoStruct getAgentPathInfo();
     void setPreviousColision(bool input);

@@ -5,7 +5,9 @@
 #include "cityModel.h"
 #include "modelAgent.h"
 #include "propertiesMap.h"
+
 #include "DataSource_AgentDecisions.h"
+#include "DataSource_AgentTSM.h"
 
 #include <boost/mpi.hpp>
 #include "repast_hpc/Random.h"
@@ -95,18 +97,21 @@ cityModel::cityModel(std::string propsFile, int argc, char** argv, boost::mpi::c
 	DataSource_AgentDecisions* agentDecisions_DataSource = new DataSource_AgentDecisions(&context);
   builder.addDataSource(createSVDataSource("Total", agentDecisions_DataSource, std::plus<int>()));
 
+  DataSource_AgentTSM* agentTSM_DataSource = new DataSource_AgentTSM(&context);
+  builder.addDataSource(createSVDataSource("Ave TSM", agentTSM_DataSource, std::plus<double>()));
+
   // Use the builder to create the data set
   agentDecisions = builder.createDataSet();
 
   policy1Mode = repast::strToInt(props->getProperty("policy1.enable"));
   policy2Mode = repast::strToInt(props->getProperty("policy2.enable"));
   policy3Mode = repast::strToInt(props->getProperty("policy3.enable"));
-  /*
+
   for(int a = 0; a < 5; a++)
   {
     globalInternalRuleWeight.push_back(string2float(props->getProperty("weight" + std::to_string(a+1))));
   }
-  */
+
 }
 
 cityModel::~cityModel()
@@ -150,8 +155,8 @@ void cityModel::initSchedule(repast::ScheduleRunner& runner)
   runner.scheduleEvent(1.4, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<cityModel> (this, &cityModel::simulateColisions)));//  simulate collisions
 
   // Data collection
-  runner.scheduleEvent(1.1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(agentDecisions, &repast::DataSet::record)));
-  runner.scheduleEvent(1.2, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(agentDecisions, &repast::DataSet::write)));
+  runner.scheduleEvent(1.1, 4, repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(agentDecisions, &repast::DataSet::record)));
+  runner.scheduleEvent(1.2, 4, repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(agentDecisions, &repast::DataSet::write)));
   runner.scheduleEndEvent(repast::Schedule::FunctorPtr(new repast::MethodFunctor<repast::DataSet>(agentDecisions, &repast::DataSet::write)));
 
   runner.scheduleStop(stopAt);
@@ -166,6 +171,7 @@ void cityModel::initAgents() // this allows agents to do their own initialiseati
   {
     (agents.at(iterator))->init(socioEconomicsMap); // for each agent, execute its init task;
     float randomDouble = repast::Random::instance()->nextDouble();
+    (agents.at(iterator))->setTSM(0.7); // for each agent, set the global travelSafetyMetric value
     //std::cout << "RandomDouble:" << randomDouble << std::endl;
     //std::cout << "init prop" << initCyclistProportion << std::endl << std::endl;
 
@@ -179,7 +185,7 @@ void cityModel::initAgents() // this allows agents to do their own initialiseati
       //std::cout << "or don't" << std::endl;
       (agents.at(iterator))->setCurrentTravelMode(DRIVEMODE);
     }
-    //(agents.at(iterator))->setInternalRuleWeight(globalInternalRuleWeight);
+    (agents.at(iterator))->setInternalRuleWeight(globalInternalRuleWeight);
   }
 }
 
@@ -188,7 +194,11 @@ void cityModel::agentsDecide() // this gets random order of all agents in contex
   if(repast::RepastProcess::instance()->rank() == 0)
   {
     repast::ScheduleRunner& runner = repast::RepastProcess::instance()->getScheduleRunner();
-    //std::cout << "I'm on tick " << runner.currentTick() << std::endl;
+    int ticker = runner.currentTick();
+    if(ticker%200 == 0)
+    {
+      std::cout << "I'm on tick " << ticker << std::endl;
+    }
   }
   std::vector<modelAgent*> agents; // make a container for agents
   context.selectAgents(agentCount, agents); // get random ordered selection of agents and add them to container
@@ -282,7 +292,7 @@ void cityModel::updateAgents()
   for(int iterator = 0; iterator < agents.size(); iterator++)// iterate through all agents
   {
     (agents.at(iterator))->setCurrentTemp(modelTemp); // for each agent, set the global model temp
-    (agents.at(iterator))->setTSM(totalAveragesTSM); // for each agent, set the global travelSafetyMetric value
+    //(agents.at(iterator))->setTSM(totalAveragesTSM); // for each agent, set the global travelSafetyMetric value
   }
 }
 
