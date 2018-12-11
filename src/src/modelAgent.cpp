@@ -29,25 +29,6 @@ void modelAgent::setPreviousColision(bool input)
   previousCollision = input;
 }
 
-/*
-void modelAgent::didICrash(propertiesMap internalCollisionsMap)
-{
-  for(int a = 0; a < internalAgentPathInfo.pathX.size(); a++)
-  {
-    int x = internalAgentPathInfo.pathX.at(a);
-    int y = internalAgentPathInfo.pathY.at(a);
-    int cellBusyness = internalCollisionsMap.getElement(x,y);
-    double cellcrashThreshold = (double)cellBusyness*0.0001; // multiply by a constant to set proportional crash likelyhood based on cell busyness, ie per bike crossing, chance of crash increases by 0.01%
-    double randomDouble = repast::Random::instance()->nextDouble();
-    if(randomDouble < cellcrashThreshold)
-    {
-      previousCollision = true;
-      break;
-    }
-  }
-}
-*/
-
 void modelAgent::makeDecision()
 {
   //std::cout << "hello" << std::endl;
@@ -105,7 +86,7 @@ void modelAgent::makeDecision()
   std::cout << std::endl;
   std::cout << std::endl;
 
-*/
+  */
   if(output > CYCLECHOICETHRESHOLD)
   {
     currentTravelMode = CYCLEMODE;
@@ -260,7 +241,6 @@ float modelAgent::getTSM()
 }
 struct fuzzyLogicStruct modelAgent::buildEngine()
 {
-  //std::cout << "building engine" << std::endl;
   struct fuzzyLogicStruct internal;
 
   internal.engine = new fl::Engine;
@@ -372,40 +352,15 @@ struct fuzzyLogicStruct modelAgent::buildEngine()
     ////////////////////////////////////////////// RULES
 
     std::vector<std::string> rulesToBeUsed;
-    //rulesToBeUsed.push_back("fitness");
-    //rulesToBeUsed.push_back("pathLength");
-    //rulesToBeUsed.push_back("SESPath");
-    //rulesToBeUsed.push_back("deltaHeight");
+    rulesToBeUsed.push_back("fitness");
+    rulesToBeUsed.push_back("pathLength");
+    rulesToBeUsed.push_back("SESPath");
+    rulesToBeUsed.push_back("deltaHeight");
     rulesToBeUsed.push_back("temperature");
     rulesToBeUsed.push_back("safetyMetric");
 
     std::vector<std::string> rules;
     /*
-    rules.push_back("if fitness is fit and pathLength is long and deltaHeight is large and temperature is cool and safetyMetric is unsafe then commuteChoice is cycle");
-    rules.push_back("if fitness is fit and pathLength is long and deltaHeight is large and temperature is cool and safetyMetric is unsafe then commuteChoice is notCycle");
-    rules.push_back("if fitness is unfit and pathLength is short and deltaHeight is large and temperature is cool and safetyMetric is unsafe then commuteChoice is cycle");
-    rules.push_back("if fitness is unfit and pathLength is short and deltaHeight is large and temperature is cool and safetyMetric is unsafe then commuteChoice is notCycle");
-    rules.push_back("if fitness is unfit and pathLength is long and deltaHeight is small and temperature is cool and safetyMetric is unsafe then commuteChoice is cycle");
-    rules.push_back("if fitness is unfit and pathLength is long and deltaHeight is small and temperature is cool and safetyMetric is unsafe then commuteChoice is notCycle");
-    rules.push_back("if fitness is unfit and pathLength is long and deltaHeight is large and temperature is warm and safetyMetric is unsafe then commuteChoice is cycle");
-    rules.push_back("if fitness is unfit and pathLength is long and deltaHeight is large and temperature is warm and safetyMetric is unsafe then commuteChoice is notCycle");
-    rules.push_back("if fitness is unfit and pathLength is long and deltaHeight is large and temperature is cool and safetyMetric is safe then commuteChoice is cycle");
-    rules.push_back("if fitness is unfit and pathLength is long and deltaHeight is large and temperature is cool and safetyMetric is safe then commuteChoice is notCycle");
-*/
-    //rules.push_back("if temperature is cool then commuteChoice is notCycle");
-    //rules.push_back("if temperature is warm then commuteChoice is cycle");
-/*
-      fl::InputVariable *temp = engine.getInputVariable(rulesToBeUsed.at(counter)); // get the object version of the input variable
-      std::vector<fl::Term*> tempTerms = temp->terms(); // get the terms for the current input variable
-      int initialRuleSize = rules.size();
-      int numberOfTerms = tempTerms.size();
-      int newNumberOfRules = initialRuleSize*numberOfTerms;
-      for(int a = 0; a < newNumberOfRules; a++)
-      {
-        rules.push_back(rules.at(a));
-      }
-      std::cout << "We have " << rulesToBeUsed.size() << " rules to be used \n";
-      */
     for(int a = 0; a <= rulesToBeUsed.size(); a++) // pick a rule to be negative
     {
       for(int b = 0; b <= rulesToBeUsed.size(); b++) // pick another rule to be negative
@@ -445,16 +400,9 @@ struct fuzzyLogicStruct modelAgent::buildEngine()
         }
       }
     }
-    /*
- std::cout << "We have " << rules.size() << " rules \n";
- for(int a = 0; a < rules.size(); a++)
- {
-   std::cout << rules.at(a) << std::endl;
- }
-*/
 
- for(int a = 0; a <= rulesToBeUsed.size(); a++) // pick a rule to be positive
- {
+    for(int a = 0; a <= rulesToBeUsed.size(); a++) // pick a rule to be positive
+    {
    for(int b = 0; b <= rulesToBeUsed.size(); b++) // pick another rule to be positive
    {
 
@@ -492,52 +440,51 @@ struct fuzzyLogicStruct modelAgent::buildEngine()
      }
    }
  }
- /*
-std::cout << "We have " << rules.size() << " rules \n";
-for(int a = 0; a < rules.size(); a++)
-{
-std::cout << rules.at(a) << std::endl;
-}
-
-
-
- std::cout << std::endl;
- std::cout << std::endl;
  */
-    /*
-*/
+
+
+
+ std::vector<std::string> outcomes;
+ outcomes.push_back(" then commuteChoice is cycle");
+ outcomes.push_back(" then commuteChoice is notCycle");
+ for(int a = 0; a < 2; a++)
+ {
+   for(int b = 0; b < rulesToBeUsed.size(); b++)
+   {
+     fl::InputVariable *temp = internal.engine->getInputVariable(rulesToBeUsed.at(b)); // get the object version of the input variable
+     std::vector<fl::Term*> tempTerms = temp->terms(); // get the terms for the current input variable
+     rules.push_back("if " + rulesToBeUsed.at(b) + " is " + tempTerms.at(a)->getName() + outcomes.at(a));
+   }
+ }
+
+
+    // 98 rules over all
     /////////////////////////////////////////// WEIGHTS
     std::vector<float> ruleWeight;
-    ruleWeight.push_back(1);
-    ruleWeight.push_back(1);
-    ruleWeight.push_back(1);
-    ruleWeight.push_back(1);
-    ruleWeight.push_back(1);
-    /*
-    if(internalRuleWeight.size() != 0)
+    for(int a = 0; a < rules.size(); a++)
     {
-      ruleWeight = internalRuleWeight;
+      ruleWeight.push_back(1);
     }
-*/
+
     ///////////////////////////////////////// INPUT RULES AND WEIGHTS
     if(setRuleWeightsCheck == true)
     {
+      if(internalRuleWeight.size() < rules.size())
+      {
+        for(int a = internalRuleWeight.size(); a <= rules.size(); a++)
+        {
+          ruleWeight.push_back(1);
+        }
+      }
       ruleWeight = internalRuleWeight; // wtf was this for??
     }
     //std::string argsString;
     int offSet = 0;
-    for(int iterator = 0; iterator < ruleWeight.size(); iterator++)
+    for(int iterator = 0; iterator < rules.size(); iterator++)
     {
       std::string argsString = rules.at(iterator);
-      if(iterator%2 == 0) // aka is this an even number
-      {
-        argsString += " with " + std::to_string(ruleWeight.at((iterator/2)));
-      }
-      else
-      {
-        argsString += " with " + std::to_string(1 - ruleWeight.at(((iterator-1)/2))); // take inverse weightings of each complimentry rule
-      }
-      //std::cout << "argsString " << argsString << std::endl;
+      argsString += " with " + std::to_string(ruleWeight.at(iterator));
+      //std::cout << "argsString:" << argsString << std::endl;
       internal.mamdani->addRule(fl::Rule::parse(argsString, internal.engine));
     }
 
@@ -552,13 +499,7 @@ std::cout << rules.at(a) << std::endl;
   /*
   */
 }
-/*
-void modelAgent::setRuleWeights(std::vector<float> input)
-{
-  ruleWeight = input;
-  setRuleWeightsCheck = true;
-}
-*/
+
 struct exportAgentPathInfoStruct modelAgent::getAgentPathInfo()
 {
   //struct exportAgentPathInfoStruct internal;
@@ -579,56 +520,12 @@ void modelAgent::setPolicies(int mode1Input, int mode2Input, int mode3Input)
   policy3Mode = mode3Input;
 }
 
-/*
-void modelAgent::createRuleBase(std::vector<std::string> * rules,std::vector<std::string> IVsToBeUsed, fl::Engine engine)
-{
-  std::string variableName = IVsToBeUsed.back(); // get the current input variable
-  IVsToBeUsed.pop_back(); // remove the input variable from the list of input variables to be processed
-  fl::InputVariable *temp = engine.getInputVariable(variableName); // get the object version of the input variable
-  std::vector<fl::Term*> tempTerms = temp->terms(); // get the terms for the current input variable
-  if(tempTerms.size() != 0)
-  {
-    if(rules->size() != 0) // do we have any rules already
-    { // yes, then we need to multiply up
-      for(int b = 0; b < tempTerms.size()-1; b++) // for every term, we need another copy of the rules, t\king into account the initial copy
-      {
-        int currentSize = rules->size();
-        for(int a = 0; a < currentSize; a++)
-        {
-          rules->push_back(rules->at(a)); // make a copy of every rule
-        }
-      }
-      // now we have all the copies of the initial rules we need
-      for(int currentTerm = 0; currentTerm < tempTerms.size(); currentTerm++)
-      {
-        for(int b = 0; b < rules->size()/tempTerms.size(); b++)
-        {
-          int ruleIterator = currentTerm*(rules->size()/tempTerms.size());
-          rules->at(ruleIterator) = rules->at(ruleIterator) + " and " + temp->getName() + " is " + tempTerms.at(b)->getName();
-        }
-      }
-    }
-    else
-    { // no, then we need to add some
-      int newRules = tempTerms.size();
-      for(int a = 0; a < newRules; a++)
-      {
-        rules->push_back(temp->getName() + " is " + tempTerms.at(a)->getName());
-      }
-    }
-  }
-  else
-  {
-    // do nothing, nothing can be done as variable not recognised
-  }
-  if(IVsToBeUsed.size() != 0)
-  {
-    createRuleBase(rules,IVsToBeUsed,engine); // fucking recursion yeahhhhhh
-  }
-}
-*/
 void modelAgent::setInternalRuleWeight(std::vector<float> input)
 {
   internalRuleWeight = input;
+  //for(int a = 0; a < internalRuleWeight.size(); a++)
+//  {
+//    std::cout << "internal rule weight element " << a << " is " << internalRuleWeight.at(a) << std::endl;
+//  }
   setRuleWeightsCheck = true;
 }

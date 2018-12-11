@@ -1,6 +1,6 @@
 #Properties file
 stop.at = 2000
-count.of.agents = 100
+count.of.agents = 800
 random.seed = 798809
 map.data.name = mapData.txt
 elevations.map.name = elevations.txt
@@ -42,3 +42,4 @@ weight2=1
 weight3=1
 weight4=1
 weight5=1
+total.Weights=3

@@ -9,7 +9,7 @@ arguments = weight1=0,weight2=0,weight3=0,weight4=0,weight5=0
 
 # Right, now for some recipes.PHONY
 .PHONY : init all
-all: bin/executable
+all: bin/executable bin/optimiser
 
 .PHONY : count
 count:
@@ -19,9 +19,6 @@ count:
 clearData:
 	rm output/*
 
-.PHONY : build
-build: # This is where all the crazy linking occurs, see other makefile for ref
-	@echo nothing to see here
 
 .PHONY : init
 init:
@@ -37,7 +34,7 @@ bin/optimiser: src/optimisationMain.cpp
 
 
 .PHONY : runOptimiser
-runOptimiser:  #*.props
+runOptimiser:  bin/optimiser
 	@echo Running Simulation
 	@./bin/optimiser
 
@@ -83,6 +80,11 @@ run:  #*.props
 clean:
 	@echo Cleaning!
 	-rm objects/*.o
+
+.PHONY : cleanData
+cleanData:
+	@echo Cleaning data!
+	-rm output/*
 
 .PHONY : clear
 clear: clean

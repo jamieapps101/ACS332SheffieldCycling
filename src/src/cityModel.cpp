@@ -107,9 +107,11 @@ cityModel::cityModel(std::string propsFile, int argc, char** argv, boost::mpi::c
   policy2Mode = repast::strToInt(props->getProperty("policy2.enable"));
   policy3Mode = repast::strToInt(props->getProperty("policy3.enable"));
 
-  for(int a = 0; a < 5; a++)
+  for(int a = 0; a < repast::strToInt(props->getProperty("total.Weights")); a++)
   {
-    globalInternalRuleWeight.push_back(string2float(props->getProperty("weight" + std::to_string(a+1))));
+    float input = string2float(props->getProperty("weight" + std::to_string(a+1)));
+    //std::cout << input << std::endl;
+    globalInternalRuleWeight.push_back(input);
   }
 
 }
@@ -169,6 +171,7 @@ void cityModel::initAgents() // this allows agents to do their own initialiseati
   //std::cout << "init-int agents" << std::endl;
   for(int iterator = 0; iterator < agents.size(); iterator++)// iterate through all agents
   {
+    (agents.at(iterator))->setInternalRuleWeight(globalInternalRuleWeight);
     (agents.at(iterator))->init(socioEconomicsMap); // for each agent, execute its init task;
     float randomDouble = repast::Random::instance()->nextDouble();
     (agents.at(iterator))->setTSM(0.7); // for each agent, set the global travelSafetyMetric value
@@ -185,7 +188,6 @@ void cityModel::initAgents() // this allows agents to do their own initialiseati
       //std::cout << "or don't" << std::endl;
       (agents.at(iterator))->setCurrentTravelMode(DRIVEMODE);
     }
-    (agents.at(iterator))->setInternalRuleWeight(globalInternalRuleWeight);
   }
 }
 
