@@ -1,6 +1,6 @@
 #Properties file
 stop.at = 2000
-count.of.agents = 800
+count.of.agents = 500
 random.seed = 798809
 map.data.name = mapData.txt
 elevations.map.name = elevations.txt

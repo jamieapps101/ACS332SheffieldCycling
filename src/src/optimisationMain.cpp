@@ -4,6 +4,10 @@
 #include <fstream>
 #include <iostream>
 #include <unistd.h>
+#include <ctime>
+#include <ratio>
+#include <chrono>
+#include <time.h>
 #define DEFAULT_STEPS 5
 
 #define OUTPUTPATH ./output/
@@ -24,7 +28,7 @@ int main()
  int numberOfWeights = 12;
  double weights[numberOfWeights] = {};
  std::string argsStringInput;
- int numberOfSamples = 10;
+ int numberOfSamples = 500;
 
  myfile.open (fileName,std::fstream::trunc);
  myfile << "sample" << ",";
@@ -69,12 +73,21 @@ int main()
    myfile << std::endl;
    myfile.close();
    std::string command;
-   command = "mpirun -n 6 ./bin/executable ./props/config.props ./props/model.props " + argsStringInput;
+   command = "mpirun -n 10 ./bin/executable ./props/config.props ./props/model.props " + argsStringInput;
    system(command.c_str());
    //system("mkdir hello");
  }
 
-
+ time_t theTime = time(NULL);
+ struct tm *aTime = localtime(&theTime);
+ int hour=aTime->tm_hour;
+ int min=aTime->tm_min;
+ std::string folderName = "output" + std::to_string(hour) + ":" + std::to_string(min);
+ std::string command;
+ command = "mkdir output/" + folderName;
+ system(command.c_str());
+ command = "mv output/*.txt output/*.csv output/" + folderName + "/";
+ system(command.c_str());
 
 
   return 0;
