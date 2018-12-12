@@ -6,6 +6,14 @@ DataSource_AgentTSM::DataSource_AgentTSM(repast::SharedContext<modelAgent>* c) :
 
 }
 
+/*
+DataSource_AgentTSM::~DataSource_AgentTSM()
+{
+//  *context = NULL;
+//  delete context;
+}
+*/
+
 double DataSource_AgentTSM::getData()
 {
   int TravelModeSum = 0;

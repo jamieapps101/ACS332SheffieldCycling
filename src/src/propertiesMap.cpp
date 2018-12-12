@@ -168,6 +168,15 @@ int propertiesMap::getElement(int x, int y)
 {
   //std::cout << "X " << x << " y " << y << std::endl;
   //std::cout << "Map Size " << mapElementsMatrix.at(y).size() << std::endl;
+  if(y > mapElementsMatrix.size() || y < 0)
+  {
+    std::cout << "fuck" << std::endl;
+  }
+  if(x > mapElementsMatrix.at(0).size() || x < 0)
+  {
+    std::cout << "fuck mk2" << std::endl;
+  }
+  
   return mapElementsMatrix.at(y).at(x);
 }
 

@@ -72,7 +72,7 @@ objects/modelMain.o: src/modelMain.cpp
 .PHONY : run
 run:  #*.props
 	@echo Running Simulation
-	rm output/*.txt
+	-rm output/*.txt
 	@mpirun -n $(Processes) ./bin/executable ./props/config.props ./props/model.props $(arguments)
 
 

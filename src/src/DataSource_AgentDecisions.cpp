@@ -5,6 +5,14 @@ DataSource_AgentDecisions::DataSource_AgentDecisions(repast::SharedContext<model
 
 }
 
+/*
+DataSource_AgentDecisions::~DataSource_AgentDecisions()
+{
+  //*context = NULL;
+  //delete context;
+}
+*/
+
 int DataSource_AgentDecisions::getData()
 {
   int TravelModeSum = 0;

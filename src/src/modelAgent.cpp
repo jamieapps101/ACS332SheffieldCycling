@@ -43,22 +43,7 @@ void modelAgent::makeDecision()
   internalAgentPathInfo.pathX = pathInfo.pathX;
   internalAgentPathInfo.pathY = pathInfo.pathY;
   internalAgentPathInfo.travelMode = currentTravelMode;
-  /*
 
-  std::cout << "homeX " << homeLocation.at(0) << std::endl;
-  std::cout << "homeY " << homeLocation.at(1) << std::endl;
-  std::cout << "workX " << workLocation.at(0) << std::endl;
-  std::cout << "workY " << workLocation.at(1) << std::endl;
-  std::cout << "Distance " << pathInfo.distance << std::endl;
-  std::cout << "Delta height " << pathInfo.deltaHeight << std::endl;
-  std::cout << "socioEconSum " << pathInfo.socioEconSum << std::endl;
-  std::cout << std::endl;
-
-  int policy1Mode;
-  int policy2Mode;
-  int policy3Mode;
-
-  */
   fuzzyEngine.fitnessInput->setValue(fitness);
   fuzzyEngine.pathLengthInput->setValue(pathInfo.distance * (1 + policy1Mode*POLICYONEDISTINCREASE));
   fuzzyEngine.SESPathInput->setValue(pathInfo.socioEconSum);
@@ -68,25 +53,7 @@ void modelAgent::makeDecision()
   fuzzyEngine.engine->process();
   float output;
   output = fuzzyEngine.commuteChoiceOutput->getValue();
-  /*
-  std::cout << "Fitness " << fitness << std::endl;
-  std::cout << "PathLength " << pathInfo.distance << std::endl;
-  std::cout << "socioEconSum " << pathInfo.socioEconSum << std::endl;
-  std::cout << "deltaHeight " << pathInfo.deltaHeight << std::endl;
-  std::cout << "Temp " << currentTemp << std::endl;
-  std::cout << "safetyMetricInput " << travelSafetyMetric << std::endl;
-  std::cout << "Abt to infer" << std::endl;
-  std::cout << "Engine has " << fuzzyEngine.engine->numberOfInputVariables() << " input variables" << std::endl;
-  std::cout << "Engine has " << fuzzyEngine.engine->numberOfOutputVariables() << " output variables" << std::endl;
-  fl::RuleBlock * extractedRuleBlock = fuzzyEngine.engine->getRuleBlock(0);
-  std::cout << "RuleBlock has " << extractedRuleBlock->numberOfRules() << " rules" << std::endl;
-  std::cout << std::endl;
-  std::cout << "Fuzzy out is " << output << std::endl;
-  std::cout << std::endl;
-  std::cout << std::endl;
-  std::cout << std::endl;
 
-  */
   if(output > CYCLECHOICETHRESHOLD)
   {
     currentTravelMode = CYCLEMODE;
@@ -95,8 +62,6 @@ void modelAgent::makeDecision()
   {
     currentTravelMode = DRIVEMODE;
   }
-
-
 }
 
 struct pathInfoStruct modelAgent::assessPath()
@@ -105,9 +70,6 @@ struct pathInfoStruct modelAgent::assessPath()
   travel.push_back(workLocation.at(0) - homeLocation.at(0));////////?????////////////////////////////////////////////////////////////////////////// Look at this shit, I am travelling wrong direction
   travel.push_back(workLocation.at(1) - homeLocation.at(1));
 
-  //std::cout << "My home location is (" << homeLocation.at(0) << "," << homeLocation.at(1) << ")" << std::endl;
-  //std::cout << "My work location is (" << workLocation.at(0) << "," << workLocation.at(1) << ")" << std::endl;
-  //std::cout << "My travel is (" << travel.at(0) <<  "," << travel.at(1) << ")" << std::endl;
   if(std::abs(travel.at(0)) > std::abs(travel.at(1)))
   {
     //std::cout << "My x travel is larger, making " << travel.at(0) << "steps "<< std::endl;
@@ -147,6 +109,7 @@ struct pathInfoStruct modelAgent::assessPath()
   for(int a = 0; a < assessPathInternalData.pathX.size(); a++)
   {
     //std::cout << "My X " << assessPathInternalData.pathX.at(a) << " and Y " << assessPathInternalData.pathY.at(a) << std::endl;
+    /*
     if(assessPathInternalData.pathX.at(a) > size.at(0))
     {
       //std::cout << "My x is larger, oh dear" << '\n';
@@ -155,6 +118,7 @@ struct pathInfoStruct modelAgent::assessPath()
     {
       //std::cout << "My y is larger, oh dear" << '\n';
     }
+    */
     assessPathInternalData.socioEconSum += SESLocal.getElement(assessPathInternalData.pathX.at(a),assessPathInternalData.pathY.at(a));
   }
 
@@ -351,97 +315,15 @@ struct fuzzyLogicStruct modelAgent::buildEngine()
 
     ////////////////////////////////////////////// RULES
 
-    std::vector<std::string> rulesToBeUsed;
-    rulesToBeUsed.push_back("fitness");
-    rulesToBeUsed.push_back("pathLength");
-    rulesToBeUsed.push_back("SESPath");
-    rulesToBeUsed.push_back("deltaHeight");
-    rulesToBeUsed.push_back("temperature");
-    rulesToBeUsed.push_back("safetyMetric");
+std::vector<std::string> rulesToBeUsed;
+rulesToBeUsed.push_back("fitness");
+rulesToBeUsed.push_back("pathLength");
+rulesToBeUsed.push_back("SESPath");
+rulesToBeUsed.push_back("deltaHeight");
+rulesToBeUsed.push_back("temperature");
+rulesToBeUsed.push_back("safetyMetric");
 
-    std::vector<std::string> rules;
-    /*
-    for(int a = 0; a <= rulesToBeUsed.size(); a++) // pick a rule to be negative
-    {
-      for(int b = 0; b <= rulesToBeUsed.size(); b++) // pick another rule to be negative
-      {
-
-        std::string thisRule = "if ";
-        for(int c = 0; c < rulesToBeUsed.size(); c++) // pick another rule to be negative
-        {
-          if(c != 0)
-          {
-            thisRule += " and ";
-          }
-          fl::InputVariable *temp = internal.engine->getInputVariable(rulesToBeUsed.at(c)); // get the object version of the input variable
-          std::vector<fl::Term*> tempTerms = temp->terms(); // get the terms for the current input variable
-          if(c == a || c == b)
-          {
-            thisRule += rulesToBeUsed.at(c) + " is " + tempTerms.at(1)->getName();
-          }
-          else
-          {
-            thisRule += rulesToBeUsed.at(c) + " is " + tempTerms.at(0)->getName();
-          }
-        }
-        thisRule += " then commuteChoice is cycle";
-        int checkRule = 1;
-        for(int d = 0; d < rules.size(); d++)
-        {
-          if(rules.at(d).compare(thisRule) == 0) // ie do they compare equally, if so then is it a duplicate
-          {
-            checkRule = 0;
-            break;
-          }
-        }
-        if(checkRule == 1) // if it isn't a duplicate, then add the rule.
-        {
-          rules.push_back(thisRule);
-        }
-      }
-    }
-
-    for(int a = 0; a <= rulesToBeUsed.size(); a++) // pick a rule to be positive
-    {
-   for(int b = 0; b <= rulesToBeUsed.size(); b++) // pick another rule to be positive
-   {
-
-     std::string thisRule = "if ";
-     for(int c = 0; c < rulesToBeUsed.size(); c++) // cycle through all rules
-     {
-       if(c != 0)
-       {
-         thisRule += " and ";
-       }
-       fl::InputVariable *temp = internal.engine->getInputVariable(rulesToBeUsed.at(c)); // get the object version of the input variable
-       std::vector<fl::Term*> tempTerms = temp->terms(); // get the terms for the current input variable
-       if(c == a || c == b)
-       {
-         thisRule += rulesToBeUsed.at(c) + " is " + tempTerms.at(0)->getName();
-       }
-       else
-       {
-         thisRule += rulesToBeUsed.at(c) + " is " + tempTerms.at(1)->getName();
-       }
-     }
-     thisRule += " then commuteChoice is notCycle";
-     int checkRule = 1;
-     for(int d = 0; d < rules.size(); d++)
-     {
-       if(rules.at(d).compare(thisRule) == 0) // ie do they compare equally, if so then is it a duplicate
-       {
-         checkRule = 0;
-         break;
-       }
-     }
-     if(checkRule == 1) // if it isn't a duplicate, then add the rule.
-     {
-       rules.push_back(thisRule);
-     }
-   }
- }
- */
-
+std::vector<std::string> rules;
 
 
  std::vector<std::string> outcomes;
@@ -457,8 +339,6 @@ struct fuzzyLogicStruct modelAgent::buildEngine()
    }
  }
 
-
-    // 98 rules over all
     /////////////////////////////////////////// WEIGHTS
     std::vector<float> ruleWeight;
     for(int a = 0; a < rules.size(); a++)
@@ -484,7 +364,6 @@ struct fuzzyLogicStruct modelAgent::buildEngine()
     {
       std::string argsString = rules.at(iterator);
       argsString += " with " + std::to_string(ruleWeight.at(iterator));
-      //std::cout << "argsString:" << argsString << std::endl;
       internal.mamdani->addRule(fl::Rule::parse(argsString, internal.engine));
     }
 
@@ -496,16 +375,10 @@ struct fuzzyLogicStruct modelAgent::buildEngine()
     // useful for debugging the engine
   }
   return internal;
-  /*
-  */
 }
 
 struct exportAgentPathInfoStruct modelAgent::getAgentPathInfo()
 {
-  //struct exportAgentPathInfoStruct internal;
-  //internal.homeLocation = homeLocation;
-  //internal.workLocation = workLocation;
-  //internal.selfID = selfID;
   return internalAgentPathInfo;
 }
 void modelAgent::setTSM(float input)
@@ -523,9 +396,5 @@ void modelAgent::setPolicies(int mode1Input, int mode2Input, int mode3Input)
 void modelAgent::setInternalRuleWeight(std::vector<float> input)
 {
   internalRuleWeight = input;
-  //for(int a = 0; a < internalRuleWeight.size(); a++)
-//  {
-//    std::cout << "internal rule weight element " << a << " is " << internalRuleWeight.at(a) << std::endl;
-//  }
   setRuleWeightsCheck = true;
 }
