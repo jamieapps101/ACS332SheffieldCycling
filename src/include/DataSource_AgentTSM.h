@@ -11,7 +11,7 @@
     repast::SharedContext<modelAgent>* context;
   public:
     DataSource_AgentTSM(repast::SharedContext<modelAgent>* c);
-    ~DataSource_AgentTSM();
+    //~DataSource_AgentTSM();
     double getData();
   };
 #endif

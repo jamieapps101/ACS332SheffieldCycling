@@ -20,7 +20,8 @@ int main()
   std::string fileName;
   fileName = "output/outputReference.csv";
   std::ofstream myfile;
-  srand(65743);
+  //srand(65743);
+  srand(time(NULL));
  std::vector<float> range;
  range.push_back(0.0);
  range.push_back(1.0);
@@ -28,9 +29,9 @@ int main()
  int numberOfWeights = 12;
  double weights[numberOfWeights] = {};
  std::string argsStringInput;
- int numberOfSamples = 100;
+ int numberOfSamples = 70;
 
-/*
+
  myfile.open (fileName,std::fstream::trunc);
  myfile << "sample" << ",";
  for(int d = 0; d < numberOfWeights; d++)
@@ -39,21 +40,21 @@ int main()
  }
  myfile << std::endl;
  myfile.close();
-*/
+
  for(int b = 0; b < numberOfSamples; b++)
  {
    std::cout << "<><><><><><><> Running Sample " << std::to_string(b) << " <><><><><><><>" << std::endl;
 
    for(int c = 0; c < numberOfWeights; c++)
    {
-   /*
+
      double normRand = (double)std::rand()/RAND_MAX;
      int steppedRandom = (int)(normRand * steps);
      double normSteppedRandom = ((double)steppedRandom)/steps;
      double newWeight = (range.at(1)-range.at(0))*normSteppedRandom + range.at(0);
      weights[c] = newWeight;
-     */
-     weights[c] = 1;
+
+     //weights[c] = 1;
    }
 
    for(int a = 0; a < numberOfWeights; a++)
@@ -65,7 +66,7 @@ int main()
      argsStringInput += " weight" + std::to_string(a) + "=" + std::to_string(weights[a]);
    }
    argsStringInput += " total.Weights=12";
-   /*
+   argsStringInput += " random.seed=" + std::to_string(rand());
    if(b == 0)
    {
      //std::cout << argsStringInput << std::endl;
@@ -79,15 +80,15 @@ int main()
    }
    myfile << std::endl;
    myfile.close();
-   */
+
    std::string command;
-   command = "mpirun -n 4 ./bin/executable ./props/config.props ./props/model.props " + argsStringInput;
+   command = "mpirun -n 10 ./bin/executable ./props/config.props ./props/model.props " + argsStringInput;
 
    system(command.c_str());
 
    //system("mkdir hello");
  }
-/*
+
  time_t theTime = time(NULL);
  struct tm *aTime = localtime(&theTime);
  int hour=aTime->tm_hour;
@@ -98,7 +99,7 @@ int main()
  system(command.c_str());
  command = "mv output/*.txt output/*.csv output/" + folderName + "/";
  system(command.c_str());
-*/
+
 
   return 0;
 }
