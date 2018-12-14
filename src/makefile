@@ -9,7 +9,7 @@ arguments = weight1=0,weight2=0,weight3=0,weight4=0,weight5=0
 
 # Right, now for some recipes.PHONY
 .PHONY : init all
-all: bin/executable bin/optimiser
+all: bin/executable bin/batchRunnerMain bin/optimisedMain
 
 .PHONY : count
 count:
@@ -28,15 +28,20 @@ init:
 optimiser: bin/optimiser
 
 
-bin/optimiser: src/optimisationMain.cpp
-	@echo Building optimiser
-	g++ -o ./bin/optimiser ./src/optimisationMain.cpp
+bin/optimisedMain: src/optimisedMain.cpp
+	@echo Building optimisedMain
+	g++ -o ./bin/optimisedMain ./src/optimisedMain.cpp
 
 
-.PHONY : runOptimiser
-runOptimiser:  bin/optimiser
-	@echo Running Simulation
-	@./bin/optimiser
+bin/batchRunnerMain: src/batchRunnerMain.cpp
+	@echo Building batchRunnerMain
+	g++ -o ./bin/batchRunnerMain ./src/batchRunnerMain.cpp
+
+
+.PHONY : runBatchRunner
+runOptimiser:  bin/batchRunnerMain
+	@echo Running batchRunnerMain
+	@./bin/batchRunnerMain
 
 MODEL_OBJECTS = objects/modelAgent.o objects/DataSource_AgentTSM.o objects/cityModel.o objects/modelMain.o objects/propertiesMap.o objects/DataSource_AgentDecisions.o objects/DataSource_AgentTSM.o
 MODEL_OBJECTS_2_LINK = ./objects/modelAgent.o ./objects/cityModel.o ./objects/modelMain.o ./objects/propertiesMap.o ./objects/DataSource_AgentDecisions.o objects/DataSource_AgentTSM.o
