@@ -39,9 +39,14 @@ bin/batchRunnerMain: src/batchRunnerMain.cpp
 
 
 .PHONY : runBatchRunner
-runOptimiser:  bin/batchRunnerMain
+runBatchRunner:  bin/batchRunnerMain
 	@echo Running batchRunnerMain
 	@./bin/batchRunnerMain
+
+.PHONY : runOptimisedMain
+runOptimisedMain:  bin/optimisedMain
+	@echo Running optimisedMain
+	@./bin/optimisedMain
 
 MODEL_OBJECTS = objects/modelAgent.o objects/DataSource_AgentTSM.o objects/cityModel.o objects/modelMain.o objects/propertiesMap.o objects/DataSource_AgentDecisions.o objects/DataSource_AgentTSM.o
 MODEL_OBJECTS_2_LINK = ./objects/modelAgent.o ./objects/cityModel.o ./objects/modelMain.o ./objects/propertiesMap.o ./objects/DataSource_AgentDecisions.o objects/DataSource_AgentTSM.o

@@ -20,17 +20,6 @@
 #include "repast_hpc/SVDataSetBuilder.h"
 #include "repast_hpc/initialize_random.h"
 
-// Policy results
-  // policy 1
-    // increase perceived road safety
-    // increase journey distance
-  // policy 2
-    // increase road saftey byaccounting less for cars influence
-  // policy 3
-    // set negative hill perception to 0
-    // bias result to car due to cost
-
-// needed variables: roadsafety, journey distance, delta height
 
 cityModel::cityModel(std::string propsFile, int argc, char** argv, boost::mpi::communicator* comm): context(comm)
 {
@@ -107,6 +96,7 @@ cityModel::cityModel(std::string propsFile, int argc, char** argv, boost::mpi::c
   policy2Mode = repast::strToInt(props->getProperty("policy2.enable"));
   policy3Mode = repast::strToInt(props->getProperty("policy3.enable"));
 
+
   for(int a = 0; a < repast::strToInt(props->getProperty("total.Weights")); a++)
   {
     float input = string2float(props->getProperty("weight" + std::to_string(a+1)));
@@ -144,6 +134,13 @@ void cityModel::init() // initialise the model with agents
     agent->setFitness(gen.next());
     agent->setPolicies(policy1Mode,policy2Mode,policy3Mode);
     context.addAgent(agent); // add this agent to the process context
+  }
+  //std::cout << "Helloooo" << std::endl;
+  if(repast::RepastProcess::instance()->rank() == 0)
+  {
+    std::cout << "Policy Mode 1: " << policy1Mode << std::endl;
+    std::cout << "Policy Mode 2: " << policy2Mode << std::endl;
+    std::cout << "Policy Mode 3: " << policy3Mode << std::endl;
   }
 }
 

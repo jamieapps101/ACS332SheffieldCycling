@@ -1,5 +1,5 @@
 #Properties file
-stop.at = 2000
+stop.at = 2028
 count.of.agents = 100
 random.seed = 798809
 map.data.name = mapData.txt
@@ -52,4 +52,4 @@ weight12=1
 weight13=1
 weight14=1
 weight15=1
-total.Weights=3
+total.Weights=12
